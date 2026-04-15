@@ -1,248 +1,280 @@
-# Graph Report - .  (2026-05-04)
+# Graph Report - ConsentFlow  (2026-05-05)
 
 ## Corpus Check
-- 125 files · ~62,230 words
+- 119 files · ~67,825 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 718 nodes · 972 edges · 50 communities detected
-- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 136 edges (avg confidence: 0.77)
+- 815 nodes · 1252 edges · 53 communities detected
+- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 143 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `f0729247`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Tsx Badge|Tsx Badge]]
-- [[_COMMUNITY_Otel Gate|Otel Gate]]
-- [[_COMMUNITY_Dataset Anonymize|Dataset Anonymize]]
-- [[_COMMUNITY_Policy Text|Policy Text]]
-- [[_COMMUNITY_Training Gate|Training Gate]]
-- [[_COMMUNITY_Memory Cache|Memory Cache]]
-- [[_COMMUNITY_Get Post|Get Post]]
-- [[_COMMUNITY_Producer Pool|Producer Pool]]
-- [[_COMMUNITY_Scan Policy|Scan Policy]]
-- [[_COMMUNITY_Init Stub|Init Stub]]
-- [[_COMMUNITY_Runs Tags|Runs Tags]]
-- [[_COMMUNITY_Policy Analyze|Policy Analyze]]
-- [[_COMMUNITY_Chat Get|Chat Get]]
-- [[_COMMUNITY_Consent Drift|Consent Drift]]
-- [[_COMMUNITY_Dataframe Monitor|Dataframe Monitor]]
-- [[_COMMUNITY_Consent Get|Consent Get]]
-- [[_COMMUNITY_Policy Scan|Policy Scan]]
-- [[_COMMUNITY_Consent Redis|Consent Redis]]
-- [[_COMMUNITY_Consent Payload|Consent Payload]]
-- [[_COMMUNITY_Consent Router|Consent Router]]
-- [[_COMMUNITY_Panel Chat|Panel Chat]]
-- [[_COMMUNITY_Inference Consent|Inference Consent]]
-- [[_COMMUNITY_Grafana Otel|Grafana Otel]]
-- [[_COMMUNITY_Get Users|Get Users]]
-- [[_COMMUNITY_Inference Gate|Inference Gate]]
-- [[_COMMUNITY_Audit Get|Audit Get]]
-- [[_COMMUNITY_Consent Get|Consent Get]]
-- [[_COMMUNITY_Gemini Client|Gemini Client]]
-- [[_COMMUNITY_Dsn Asyncpg|Dsn Asyncpg]]
-- [[_COMMUNITY_Dashboard Get|Dashboard Get]]
-- [[_COMMUNITY_Infer Model|Infer Model]]
-- [[_COMMUNITY_Providers Tsx|Providers Tsx]]
-- [[_COMMUNITY_Brand Next|Brand Next]]
-- [[_COMMUNITY_Health Tests|Health Tests]]
-- [[_COMMUNITY_Document File|Document File]]
-- [[_COMMUNITY_Circular World|Circular World]]
-- [[_COMMUNITY_Inverted Triangle|Inverted Triangle]]
-- [[_COMMUNITY_Application Frame|Application Frame]]
-- [[_COMMUNITY_Alias Number|Alias Number]]
-- [[_COMMUNITY_Try Resolve|Try Resolve]]
-- [[_COMMUNITY_Deserialise Kafka|Deserialise Kafka]]
-- [[_COMMUNITY_Scenario Kafka|Scenario Kafka]]
-- [[_COMMUNITY_Scenario Verify|Scenario Verify]]
-- [[_COMMUNITY_Scenario Verify|Scenario Verify]]
-- [[_COMMUNITY_Mlflow Has|Mlflow Has]]
-- [[_COMMUNITY_Malformed Event|Malformed Event]]
-- [[_COMMUNITY_Aiokafkaconsumer Can|Aiokafkaconsumer Can]]
-- [[_COMMUNITY_Set Mlflow|Set Mlflow]]
-- [[_COMMUNITY_Dataset Gate|Dataset Gate]]
-- [[_COMMUNITY_Drift Monitor|Drift Monitor]]
+- [[_COMMUNITY_Community 0|Community 0]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 15|Community 15]]
+- [[_COMMUNITY_Community 16|Community 16]]
+- [[_COMMUNITY_Community 17|Community 17]]
+- [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
+- [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
+- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
+- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 45|Community 45]]
+- [[_COMMUNITY_Community 46|Community 46]]
+- [[_COMMUNITY_Community 47|Community 47]]
+- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 55|Community 55]]
+- [[_COMMUNITY_Community 56|Community 56]]
+- [[_COMMUNITY_Community 57|Community 57]]
+- [[_COMMUNITY_Community 76|Community 76]]
+- [[_COMMUNITY_Community 77|Community 77]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `TrainingGateConsumer` - 19 edges
-2. `cn()` - 15 edges
-3. `FakeKafkaConsumer` - 13 edges
-4. `PolicyAuditor` - 12 edges
-5. `QuarantineRecord` - 11 edges
-6. `ConsentAwareDriftMonitor` - 10 edges
-7. `FakeKafkaMessage` - 10 edges
-8. `is_user_consented()` - 9 edges
-9. `lifespan()` - 9 edges
-10. `receive_consent_revoke()` - 9 edges
+1. `BaseModel` - 25 edges
+2. `TrainingGateConsumer` - 20 edges
+3. `cn()` - 15 edges
+4. `FakeKafkaConsumer` - 14 edges
+5. `PolicyAuditor` - 13 edges
+6. `QuarantineRecord` - 12 edges
+7. `ConsentAwareDriftMonitor` - 11 edges
+8. `FakeKafkaMessage` - 11 edges
+9. `is_user_consented()` - 10 edges
+10. `receive_consent_revoke()` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Gate 05 Policy Auditor with Claude` --semantically_similar_to--> `Policy Auditor`  [INFERRED] [semantically similar]
   project-summary.md → README.md
-- `lifespan()` --calls--> `close_redis_client()`  [INFERRED]
-  consentflow-backend/consentflow/app/main.py → consentflow-backend/consentflow/app/cache.py
 - `Pipeline Panel` --references--> `Inference Gate`  [INFERRED]
   frontend.md → README.md
 - `Policy Auditor` --conceptually_related_to--> `Multi-Tier AI Client`  [INFERRED]
   README.md → backend.md
 - `Backend Frontend Rebuild Strategy` --rationale_for--> `Chat Router`  [EXTRACTED]
   plan.md → backend.md
+- `OpenTelemetry Observability` --references--> `OTel Collector Service`  [INFERRED]
+  backend.md → consentflow-backend/docker-compose.yml
 
 ## Hyperedges (group relationships)
 - **Consent Revocation Enforcement Flow** — backend_webhook_router, readme_kafka_revocation, backend_freeze_log [EXTRACTED 1.00]
 - **Frontend Demo Tri-Panel** — frontend_memory_panel, frontend_chat_panel, frontend_pipeline_panel [EXTRACTED 1.00]
 - **Observability Infrastructure Stack** — compose_otel_collector_service, compose_grafana_service, grafana_prometheus_datasource [EXTRACTED 1.00]
 
-## Communities (66 total, 17 thin omitted)
+## Communities (78 total, 14 thin omitted)
 
-### Community 0 - "Tsx Badge"
+### Community 0 - "Community 0"
 Cohesion: 0.06
-Nodes (13): cn(), timeAgo(), Badge(), Dialog(), DialogTrigger(), ScrollArea(), Sheet(), SheetTrigger() (+5 more)
+Nodes (15): cn(), timeAgo(), Badge(), Dialog(), DialogTrigger(), ScrollArea(), Sheet(), SheetTrigger() (+7 more)
 
-### Community 1 - "Otel Gate"
-Cohesion: 0.05
-Nodes (45): consentflow/otel_dataset_gate.py — OTel-instrumented dataset gate wrapper (Step, Insert one row into ``audit_log``.  Errors are logged, never raised., OTel-instrumented wrapper around ``register_dataset_with_consent_check``., traced_register_dataset(), _write_audit_row(), consentflow/otel_inference_gate.py — OTel-instrumented inference gate helper (St, Insert one row into ``audit_log``.  Errors are logged, never raised., Record an OTel span and audit log row for one inference gate decision.      Pa (+37 more)
+### Community 1 - "Community 1"
+Cohesion: 0.11
+Nodes (31): _parse_event(), QuarantineRecord, consentflow/training_gate.py — Kafka consumer that enforces consent at training, Handle a single revocation event for *user_id*.          Steps         -----, Continuously consume ``consent.revoked`` events until cancelled.          This, Create a real ``AIOKafkaConsumer`` and run the training gate loop.      Import, An immutable record of one quarantine action.      Attributes     ----------, Asynchronous Kafka consumer that quarantines MLflow runs on consent revocation. (+23 more)
 
-### Community 2 - "Dataset Anonymize"
-Cohesion: 0.05
-Nodes (36): BaseCallbackHandler, anonymize_record(), _anonymize_text(), _anonymize_value(), consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan 1, Return a copy of *record* with all string-valued PII fields masked.      Non-str, Recursively anonymize a value (dict, list, str, or other)., Detect and mask PII in a single text string.      Returns the anonymized string. (+28 more)
+### Community 2 - "Community 2"
+Cohesion: 0.08
+Nodes (34): check_redis(), close_redis_client(), _consent_key(), create_redis_client(), get_consent_cache(), invalidate_consent_cache(), cache.py — Redis helpers for consent lookup caching.  Key schema:  consent:{us, Delete the cached consent entry for user+purpose. (+26 more)
 
-### Community 3 - "Policy Text"
-Cohesion: 0.06
-Nodes (29): analyze_policy(), _compute_max_severity(), fetch_policy_text(), PolicyAnalysisError, PolicyAuditor, PolicyFetchError, consentflow/policy_auditor.py — Gate 05: Policy Auditor  Fetches and analyses, Return plain text extracted from an HTML document. (+21 more)
+### Community 3 - "Community 3"
+Cohesion: 0.08
+Nodes (28): analyze_policy(), _compute_max_severity(), fetch_policy_text(), PolicyAnalysisError, PolicyAuditor, PolicyFetchError, consentflow/policy_auditor.py — Gate 05: Policy Auditor  Fetches and analyses, Return plain text extracted from an HTML document. (+20 more)
 
-### Community 4 - "Training Gate"
-Cohesion: 0.1
-Nodes (30): _parse_event(), QuarantineRecord, consentflow/training_gate.py — Kafka consumer that enforces consent at training, Handle a single revocation event for *user_id*.          Steps         -----, Continuously consume ``consent.revoked`` events until cancelled.          This, Create a real ``AIOKafkaConsumer`` and run the training gate loop.      Import, An immutable record of one quarantine action.      Attributes     ----------, Asynchronous Kafka consumer that quarantines MLflow runs on consent revocation. (+22 more)
+### Community 4 - "Community 4"
+Cohesion: 0.09
+Nodes (33): main(), consentflow/otel_inference_gate.py — OTel-instrumented inference gate helper (St, Insert one row into ``audit_log``.  Errors are logged, never raised., Record an OTel span and audit log row for one inference gate decision.      Pa, traced_inference_check(), _write_audit_row(), consentflow/otel_monitoring_gate.py — OTel-instrumented monitoring gate wrapper, Insert one row into ``audit_log``.  Errors are logged, never raised. (+25 more)
 
-### Community 5 - "Memory Cache"
+### Community 5 - "Community 5"
+Cohesion: 0.07
+Nodes (21): GET(), getBackendUrl(), handleMessage(), buildHeaders(), DELETE(), GET(), POST(), GET() (+13 more)
+
+### Community 6 - "Community 6"
 Cohesion: 0.08
 Nodes (28): _cache_get(), _cache_invalidate(), _cache_set(), _cached_memories(), _extract_facts(), _extract_facts_from_clause(), _fingerprint(), _is_noisy_catchall() (+20 more)
 
-### Community 6 - "Get Post"
-Cohesion: 0.08
-Nodes (19): GET(), buildHeaders(), DELETE(), GET(), POST(), GET(), GET(), GET() (+11 more)
-
-### Community 7 - "Producer Pool"
-Cohesion: 0.07
-Nodes (28): create_redis_client(), check_postgres(), close_pool(), create_pool(), db.py — asyncpg connection pool management.  The pool is stored on the FastAPI, Create and return an asyncpg connection pool., Gracefully close all connections in the pool., Ping Postgres; return 'ok' or error string. (+20 more)
-
-### Community 8 - "Scan Policy"
-Cohesion: 0.08
+### Community 7 - "Community 7"
+Cohesion: 0.11
 Nodes (29): PolicyScanRequest, Payload for POST /policy-auditor/scan — supply a URL, raw text, or both., _make_auditor(), _make_ollama_response(), _mock_ollama_client(), tests/test_gate05_e2e.py — Gate 05 (Policy Auditor) end-to-end smoke tests.  T, End-to-end scan pipeline in URL mode.      Mocks:     - httpx.AsyncClient.get, End-to-end scan in paste-text (no URL fetch) mode.      Mocks: Ollama → 0 find (+21 more)
 
-### Community 9 - "Init Stub"
-Cohesion: 0.09
+### Community 8 - "Community 8"
+Cohesion: 0.1
+Nodes (19): attachAndBind(), loadConsentProfile(), main(), applyOfflineFallback(), attachInterceptor(), interceptClick(), sendToServiceWorker(), timeout() (+11 more)
+
+### Community 9 - "Community 9"
+Cohesion: 0.12
+Nodes (25): fake_pool(), fake_redis(), fake_settings(), _make_auditor(), _make_ollama_response(), tests/test_policy_auditor.py — Gate 05: Policy Auditor unit test suite.  All t, LLM returns empty findings array → overall_risk_level must be 'low'., LLM wraps JSON in ```json ... ``` — must still parse correctly. (+17 more)
+
+### Community 10 - "Community 10"
+Cohesion: 0.1
 Nodes (11): client(), fake_pool(), fake_redis(), FakeConnection, FakePool, FakeRedis, tests/conftest.py — shared pytest fixtures for ConsentFlow.  Strategy: overrid, Minimal asyncpg connection stub. (+3 more)
 
-### Community 10 - "Runs Tags"
-Cohesion: 0.12
+### Community 11 - "Community 11"
+Cohesion: 0.13
 Nodes (18): apply_quarantine_tags(), apply_quarantine_to_registered_model(), list_quarantined_runs(), _make_client(), consentflow/mlflow_utils.py — MLflow helper utilities for the Training Gate., Apply quarantine tags to an MLflow *run*.      Tags applied     ------------, Apply quarantine tags to a *registered model version*.      Parameters     --, Return all MLflow runs that have been flagged as quarantined.      Parameters (+10 more)
 
-### Community 11 - "Policy Analyze"
-Cohesion: 0.09
-Nodes (21): fake_settings(), _make_ollama_response(), tests/test_policy_auditor.py — Gate 05: Policy Auditor unit test suite.  All t, LLM returns empty findings array → overall_risk_level must be 'low'., LLM wraps JSON in ```json ... ``` — must still parse correctly., LLM returns plain text instead of JSON → ValueError must propagate., LLM returns severity='banana' → must be coerced to 'low'., HTTP 200 from a fake URL → returns the plain text body. (+13 more)
+### Community 12 - "Community 12"
+Cohesion: 0.12
+Nodes (18): anonymize_record(), _anonymize_text(), _anonymize_value(), consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan, Return a copy of *record* with all string-valued PII fields masked.      Non-s, Recursively anonymize a value (dict, list, str, or other)., Detect and mask PII in a single text string.      Returns the anonymized strin, filtered_count() (+10 more)
 
-### Community 12 - "Chat Get"
-Cohesion: 0.18
-Nodes (17): BaseModel, chat_message(), ChatHistoryEntry, ChatHistoryResponse, ChatRequest, ChatResetResponse, ChatResponse, ChatStateResponse (+9 more)
-
-### Community 13 - "Consent Drift"
+### Community 13 - "Community 13"
 Cohesion: 0.13
+Nodes (17): BaseHTTPMiddleware, ConsentMiddleware, _extract_user_id(), consentflow/inference_gate.py — FastAPI middleware for inference-time consent en, Intercept the request, enforce consent, then forward or reject., ASGI middleware that enforces inference-time consent.      Parameters     ---, Return True iff *path* falls under a protected prefix., _check_postgres() (+9 more)
+
+### Community 14 - "Community 14"
+Cohesion: 0.13
+Nodes (15): consentflow/otel_dataset_gate.py — OTel-instrumented dataset gate wrapper (Step, Insert one row into ``audit_log``.  Errors are logged, never raised., OTel-instrumented wrapper around ``register_dataset_with_consent_check``., traced_register_dataset(), _write_audit_row(), consentflow/otel_training_gate.py — OTel-instrumented training gate helper (Step, Record an OTel span and audit log row for a training gate quarantine event., Insert one row into ``audit_log``.  Errors are logged, never raised. (+7 more)
+
+### Community 15 - "Community 15"
+Cohesion: 0.17
+Nodes (17): close_kafka_producer(), create_kafka_producer(), publish_revocation(), kafka_producer.py — Async Kafka producer for consent-revocation events.  Lifec, Instantiate and start an AIOKafkaProducer.      The producer serialises values, Flush pending messages and stop the producer., Publish a ``consent.revoked`` event to Kafka.      Parameters     ----------, _apply_revocation_to_db() (+9 more)
+
+### Community 16 - "Community 16"
+Cohesion: 0.13
+Nodes (19): ConsentRevokeRequest, ConsentStatusResponse, ConsentUpsertRequest, ExtensionAnonymizePlaceholderRequest, HealthResponse, PolicyScanListItem, Lightweight row returned from GET /policy-auditor/scans (list view)., Payload for POST /consent — grant or revoke a consent record. (+11 more)
+
+### Community 17 - "Community 17"
+Cohesion: 0.14
 Nodes (12): ConsentAwareDriftMonitor, DriftAlert, DriftCheckResult, consentflow/monitoring_gate.py — Consent-aware Evidently drift monitor (Step 6)., Wraps Evidently's DataDriftPreset with per-sample consent-status tagging., Add a ``_consent_status`` column (``"granted"`` / ``"revoked"``) to *df*., Run an Evidently ``DataDriftPreset`` report on *current_df* vs *reference_df*., Inspect ``_consent_status`` and emit one :class:`DriftAlert` per unique (+4 more)
 
-### Community 14 - "Dataframe Monitor"
-Cohesion: 0.17
+### Community 18 - "Community 18"
+Cohesion: 0.2
 Nodes (17): _fake_consent_fn(), _make_monitor(), _make_reference_df(), tests/test_monitoring_gate.py — Unit tests for Step 6 (Drift Monitor Integration, SCENARIO 2     ----------     Current window has 3 rows from USER_REVOKED_1 an, SCENARIO 3     ----------     6 rows from USER_REVOKED_1 → severity == ``"crit, EDGE CASE 1     -----------     A DataFrame that has no 'user_id' column must, EDGE CASE 2     -----------     An empty current DataFrame (0 rows, correct co (+9 more)
 
-### Community 15 - "Consent Get"
-Cohesion: 0.17
-Nodes (12): invalidate_consent_cache(), Delete the cached consent entry for user+purpose., ConsentRecord, ConsentStatus, Full consent record returned from the DB., main(), Enum, list_consents() (+4 more)
-
-### Community 16 - "Policy Scan"
-Cohesion: 0.18
+### Community 19 - "Community 19"
+Cohesion: 0.21
 Nodes (15): PolicyFinding, PolicyScanResult, A single red-flag finding extracted from a policy document., Full scan result returned from POST /policy-auditor/scan., get_policy_scan(), _get_pool(), _get_redis(), list_policy_scans() (+7 more)
 
-### Community 17 - "Consent Redis"
-Cohesion: 0.21
-Nodes (12): check_redis(), close_redis_client(), _consent_key(), get_consent_cache(), cache.py — Redis helpers for consent lookup caching.  Key schema:  consent:{us, Ping Redis; return 'ok' or an error string., Return the cached consent payload as a dict, or None on cache miss., Store the consent payload in Redis with TTL.     `payload` must be JSON-seriali (+4 more)
+### Community 20 - "Community 20"
+Cohesion: 0.18
+Nodes (9): BaseCallbackHandler, ConsentCallbackHandler, ConsentRevokedException, consentflow/langchain_gate.py — LangChain callback handler for consent enforceme, Perform the consent check and raise if revoked., Called before every LLM invocation in synchronous chains., Called before every LLM invocation in async chains., Raised when a LangChain LLM call is attempted for a user whose consent     has (+1 more)
 
-### Community 18 - "Consent Payload"
-Cohesion: 0.15
-Nodes (11): ConsentRevokeRequest, ConsentStatusResponse, ConsentUpsertRequest, HealthResponse, PolicyScanListItem, Lightweight row returned from GET /policy-auditor/scans (list view)., Payload for POST /consent — grant or revoke a consent record., Payload for POST /consent/revoke. (+3 more)
+### Community 21 - "Community 21"
+Cohesion: 0.18
+Nodes (13): chat_message(), ChatRequest, ChatResetResponse, ChatResponse, ChatStateResponse, get_chat_state(), _get_freeze_state(), _log_audit() (+5 more)
 
-### Community 19 - "Consent Router"
+### Community 22 - "Community 22"
 Cohesion: 0.17
 Nodes (13): Consent Router, Consent Freeze Log, Webhook Router, Frontend API Proxy Routes, Consent Revocation Demo Narrative, ConsentFlow, FastAPI Backend, Kafka Revocation Event (+5 more)
 
-### Community 20 - "Panel Chat"
+### Community 23 - "Community 23"
 Cohesion: 0.15
 Nodes (13): Presidio Anonymizer Module, Audit Log, Chat Router, Multi-Tier AI Client, Memory Store, Chat Panel, Frontend Demo Page, Memory Panel (+5 more)
 
-### Community 21 - "Inference Consent"
-Cohesion: 0.22
-Nodes (7): BaseHTTPMiddleware, ConsentMiddleware, _extract_user_id(), consentflow/inference_gate.py — FastAPI middleware for inference-time consent en, Intercept the request, enforce consent, then forward or reject., ASGI middleware that enforces inference-time consent.      Parameters     ---, Return True iff *path* falls under a protected prefix.
+### Community 24 - "Community 24"
+Cohesion: 0.23
+Nodes (11): anonymize(), consent_profile(), _cors(), _generate_dummy(), options_handler(), extension.py — FastAPI router for the ConsentFlow Privacy Shield browser extensi, Handle pre-flight CORS requests from the browser extension., Swap placeholder tokens for random dummy values.      Input:  { "entity_refs": [ (+3 more)
 
-### Community 22 - "Grafana Otel"
+### Community 25 - "Community 25"
+Cohesion: 0.25
+Nodes (9): mock_is_user_consented(), tests/test_step4.py — Integration tests for Step 4 (Inference Gate).  Tests th, Patch the sdk.is_user_consented function so we do not actually     hit the data, Scenario 3: Missing user_id block., Scenario 2: User with revoked consent is blocked., Scenario 1: User with valid consent passes through., test_inference_gate_missing_user_id(), test_inference_gate_revoked_consent() (+1 more)
+
+### Community 26 - "Community 26"
 Cohesion: 0.25
 Nodes (11): OpenTelemetry Observability, ConsentFlow App Service, Backend Docker Compose Stack, Grafana Service, Kafka Service, OTel Collector Service, Postgres Service, Redis Service (+3 more)
 
-### Community 23 - "Get Users"
+### Community 27 - "Community 27"
+Cohesion: 0.36
+Nodes (8): Enriched user record returned from GET /users, includes consent summary., UserListRecord, _create_user(), _get_pool(), get_user(), list_users(), routers/users.py — User management endpoints.  Endpoints --------- GET    /u, register_user()
+
+### Community 28 - "Community 28"
 Cohesion: 0.24
-Nodes (8): Enriched user record returned from GET /users, includes consent summary., UserListRecord, UserRecord, _create_user(), get_user(), list_users(), routers/users.py — User management endpoints.  Endpoints --------- GET    /u, register_user()
+Nodes (8): AuditLogEntry, AuditTrailResponse, A single row from the audit_log table., Response envelope for GET /audit/trail., get_audit_trail(), _get_pool(), routers/audit.py — Audit trail endpoint (Step 7).  Endpoint -------- GET /au, Return time-ordered consent audit trail with optional filters.
 
-### Community 24 - "Inference Gate"
-Cohesion: 0.2
-Nodes (9): mock_is_user_consented(), tests/test_step4.py — Integration tests for Step 4 (Inference Gate).  Tests th, Patch the sdk.is_user_consented function so we do not actually     hit the data, Scenario 3: Missing user_id block., Scenario 2: User with revoked consent is blocked., Scenario 1: User with valid consent passes through., test_inference_gate_missing_user_id(), test_inference_gate_revoked_consent() (+1 more)
+### Community 29 - "Community 29"
+Cohesion: 0.39
+Nodes (7): tests/test_consent.py — Unit tests for /consent endpoints.  Uses in-memory fak, test_get_consent_cache_hit(), test_get_consent_cache_miss(), test_get_consent_not_found(), test_revoke_consent(), test_revoke_consent_not_found(), test_upsert_consent()
 
-### Community 25 - "Audit Get"
-Cohesion: 0.22
-Nodes (7): AuditLogEntry, AuditTrailResponse, A single row from the audit_log table., Response envelope for GET /audit/trail., get_audit_trail(), routers/audit.py — Audit trail endpoint (Step 7).  Endpoint -------- GET /au, Return time-ordered consent audit trail with optional filters.
+### Community 30 - "Community 30"
+Cohesion: 0.43
+Nodes (5): asyncpg_dsn(), postgres_dsn(), redis_url(), Settings, BaseSettings
 
-### Community 27 - "Gemini Client"
+### Community 31 - "Community 31"
 Cohesion: 0.33
-Nodes (4): GeminiClient, consentflow/gemini_client.py — Async Gemini 2.0 Flash LangChain client.  Refacto, Async wrapper using LangChain for the Gemini generateContent REST endpoint., Build a context-aware prompt using LangChain and get a reply.          Tier 1: M
+Nodes (4): GeminiClient, consentflow/gemini_client.py — Async Gemini 2.0 Flash LangChain client.  Refac, Async wrapper using LangChain for the Gemini generateContent REST endpoint., Build a context-aware prompt using LangChain and get a reply.          Tier 1:
 
-### Community 30 - "Infer Model"
+### Community 32 - "Community 32"
 Cohesion: 0.5
 Nodes (3): predict_model(), routers/infer.py — Dummy inference endpoints for testing the ConsentMiddleware., Dummy endpoint representing an AI model inference call.      This route sits b
 
-### Community 32 - "Brand Next"
+### Community 33 - "Community 33"
+Cohesion: 0.7
+Nodes (3): DashboardStatsResponse, get_dashboard_stats(), _get_pool()
+
+### Community 36 - "Community 36"
 Cohesion: 0.67
 Nodes (4): Frontend Public Brand Asset, Monochrome Black Vector Style, Next.js Framework Brand, Next.js Wordmark Logo
 
-### Community 34 - "Document File"
+### Community 39 - "Community 39"
 Cohesion: 1.0
 Nodes (3): Document File Icon, Folded Corner Indicator, Text Content Lines
 
-### Community 35 - "Circular World"
+### Community 40 - "Community 40"
 Cohesion: 1.0
 Nodes (3): Circular World Boundary, Globe Earth Icon, Latitude and Longitude Grid
 
-### Community 36 - "Inverted Triangle"
+### Community 41 - "Community 41"
 Cohesion: 0.67
 Nodes (3): Inverted Triangle Shape, Minimal Brand Identity, Vercel Logo Mark
 
-### Community 37 - "Application Frame"
+### Community 42 - "Community 42"
 Cohesion: 0.67
 Nodes (3): Application Frame Outline, Browser Window Icon, Title Bar Control Dots
 
 ## Knowledge Gaps
-- **240 isolated node(s):** `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan 1`, `Return a copy of *record* with all string-valued PII fields masked.      Non-str`, `Recursively anonymize a value (dict, list, str, or other).`, `Detect and mask PII in a single text string.      Returns the anonymized string.`, `consentflow/dataset_gate.py — Consent-aware dataset registration gate.  Public` (+235 more)
+- **219 isolated node(s):** `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan`, `Return a copy of *record* with all string-valued PII fields masked.      Non-s`, `Recursively anonymize a value (dict, list, str, or other).`, `Detect and mask PII in a single text string.      Returns the anonymized strin`, `Summary of a single dataset registration run.` (+214 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `chat_message()` connect `Chat Get` to `Consent Redis`, `Memory Cache`?**
-  _High betweenness centrality (0.165) - this node is a cross-community bridge._
-- **Why does `FakeRedis` connect `Init Stub` to `Memory Cache`?**
-  _High betweenness centrality (0.111) - this node is a cross-community bridge._
-- **Why does `get_chat_history()` connect `Chat Get` to `Consent Get`?**
-  _High betweenness centrality (0.111) - this node is a cross-community bridge._
-- **Are the 23 inferred relationships involving `str` (e.g. with `main()` and `register_dataset_with_consent_check()`) actually correct?**
-  _`str` has 23 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 13 inferred relationships involving `TrainingGateConsumer` (e.g. with `FakeKafkaMessage` and `FakeKafkaConsumer`) actually correct?**
+- **Why does `chat_message()` connect `Community 21` to `Community 2`, `Community 6`?**
+  _High betweenness centrality (0.146) - this node is a cross-community bridge._
+- **Why does `FakeRedis` connect `Community 10` to `Community 6`?**
+  _High betweenness centrality (0.100) - this node is a cross-community bridge._
+- **Why does `get_chat_history()` connect `Community 16` to `Community 4`, `Community 21`?**
+  _High betweenness centrality (0.097) - this node is a cross-community bridge._
+- **Are the 24 inferred relationships involving `str` (e.g. with `main()` and `register_dataset_with_consent_check()`) actually correct?**
+  _`str` has 24 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 13 inferred relationships involving `TrainingGateConsumer` (e.g. with `test_kafka_event_triggers_quarantine()` and `test_quarantine_tags_are_correct()`) actually correct?**
   _`TrainingGateConsumer` has 13 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `FakeKafkaConsumer` (e.g. with `QuarantineRecord` and `TrainingGateConsumer`) actually correct?**
   _`FakeKafkaConsumer` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan 1`, `Return a copy of *record* with all string-valued PII fields masked.      Non-str`, `Recursively anonymize a value (dict, list, str, or other).` to the rest of the system?**
-  _240 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan`, `Return a copy of *record* with all string-valued PII fields masked.      Non-s`, `Recursively anonymize a value (dict, list, str, or other).` to the rest of the system?**
+  _219 weakly-connected nodes found - possible documentation gaps or missing edges._
