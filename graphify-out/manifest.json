@@ -92,8 +92,8 @@
     "hash": "3db395cb527ddb7b0b0ad22315c83324"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\consentflow\\app\\main.py": {
-    "mtime": 1777978662.493875,
-    "hash": "450b799fb0ce701127c027f389bca0b1"
+    "mtime": 1778002853.0049174,
+    "hash": "8ad08ffad33e39eb3d9da2329f5bf088"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\consentflow\\app\\models.py": {
     "mtime": 1777978633.0397794,
@@ -220,12 +220,12 @@
     "hash": "8d652eaeff977ea3e13c5c983a58befb"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\background\\serviceWorker.ts": {
-    "mtime": 1777977949.2485814,
-    "hash": "9c5c17bb23161bd954881cb86d8a2689"
+    "mtime": 1778002850.987085,
+    "hash": "8f6d5fc6cad89a02e306026aea946b8f"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\index.ts": {
-    "mtime": 1777978419.2199397,
-    "hash": "eaa781e28407313d5ea11dbf5f4cede5"
+    "mtime": 1778003163.6222458,
+    "hash": "a0d7a0054830a9a9589463c0a7f0e62e"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\interceptor.ts": {
     "mtime": 1777977947.2333221,
@@ -252,8 +252,8 @@
     "hash": "dfc4c82bf5a2f6161118fb037fec8182"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\popup\\App.tsx": {
-    "mtime": 1778002141.28009,
-    "hash": "68918af3acd09972c414e63fa711003e"
+    "mtime": 1778003434.0221462,
+    "hash": "0c7945bc0637fd5ff60edc5201f3def2"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\utils\\dummyGenerator.test.ts": {
     "mtime": 1777977108.725117,

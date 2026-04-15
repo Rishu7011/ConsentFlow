@@ -1,16 +1,16 @@
 # Graph Report - ConsentFlow  (2026-05-05)
 
 ## Corpus Check
-- 119 files · ~68,789 words
+- 119 files · ~68,928 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 820 nodes · 1257 edges · 48 communities detected
-- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 143 edges (avg confidence: 0.77)
+- 820 nodes · 1258 edges · 48 communities detected
+- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 144 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0610b26d`
+- Built from commit: `15119c01`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -40,29 +40,29 @@
 - [[_COMMUNITY_Community 22|Community 22]]
 - [[_COMMUNITY_Community 23|Community 23]]
 - [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
 - [[_COMMUNITY_Community 26|Community 26]]
 - [[_COMMUNITY_Community 27|Community 27]]
 - [[_COMMUNITY_Community 28|Community 28]]
 - [[_COMMUNITY_Community 29|Community 29]]
 - [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 31|Community 31]]
-- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
 - [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
-- [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
-- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 45|Community 45]]
 - [[_COMMUNITY_Community 46|Community 46]]
 - [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
 - [[_COMMUNITY_Community 50|Community 50]]
 - [[_COMMUNITY_Community 51|Community 51]]
-- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 70|Community 70]]
 - [[_COMMUNITY_Community 71|Community 71]]
-- [[_COMMUNITY_Community 72|Community 72]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `str` - 25 edges
@@ -93,7 +93,7 @@
 - **Frontend Demo Tri-Panel** — frontend_memory_panel, frontend_chat_panel, frontend_pipeline_panel [EXTRACTED 1.00]
 - **Observability Infrastructure Stack** — compose_otel_collector_service, compose_grafana_service, grafana_prometheus_datasource [EXTRACTED 1.00]
 
-## Communities (73 total, 14 thin omitted)
+## Communities (72 total, 14 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -104,28 +104,28 @@ Cohesion: 0.06
 Nodes (15): cn(), timeAgo(), Badge(), Dialog(), DialogTrigger(), ScrollArea(), Sheet(), SheetTrigger() (+7 more)
 
 ### Community 2 - "Community 2"
+Cohesion: 0.06
+Nodes (22): GET(), getBackendUrl(), handleMessage(), buildHeaders(), DELETE(), GET(), POST(), GET() (+14 more)
+
+### Community 3 - "Community 3"
 Cohesion: 0.11
 Nodes (31): _parse_event(), QuarantineRecord, consentflow/training_gate.py — Kafka consumer that enforces consent at training, Handle a single revocation event for *user_id*.          Steps         -----, Continuously consume ``consent.revoked`` events until cancelled.          This, Create a real ``AIOKafkaConsumer`` and run the training gate loop.      Import, An immutable record of one quarantine action.      Attributes     ----------, Asynchronous Kafka consumer that quarantines MLflow runs on consent revocation. (+23 more)
 
-### Community 3 - "Community 3"
+### Community 4 - "Community 4"
 Cohesion: 0.08
 Nodes (34): check_redis(), close_redis_client(), _consent_key(), create_redis_client(), get_consent_cache(), invalidate_consent_cache(), cache.py — Redis helpers for consent lookup caching.  Key schema:  consent:{us, Delete the cached consent entry for user+purpose. (+26 more)
 
-### Community 4 - "Community 4"
+### Community 5 - "Community 5"
 Cohesion: 0.09
 Nodes (33): main(), consentflow/otel_inference_gate.py — OTel-instrumented inference gate helper (St, Insert one row into ``audit_log``.  Errors are logged, never raised., Record an OTel span and audit log row for one inference gate decision.      Pa, traced_inference_check(), _write_audit_row(), consentflow/otel_monitoring_gate.py — OTel-instrumented monitoring gate wrapper, Insert one row into ``audit_log``.  Errors are logged, never raised. (+25 more)
 
-### Community 5 - "Community 5"
+### Community 6 - "Community 6"
 Cohesion: 0.08
 Nodes (28): analyze_policy(), _compute_max_severity(), fetch_policy_text(), PolicyAnalysisError, PolicyAuditor, PolicyFetchError, consentflow/policy_auditor.py — Gate 05: Policy Auditor  Fetches and analyses, Return plain text extracted from an HTML document. (+20 more)
 
-### Community 6 - "Community 6"
+### Community 7 - "Community 7"
 Cohesion: 0.09
 Nodes (29): ConsentAwareDriftMonitor, DriftAlert, DriftCheckResult, consentflow/monitoring_gate.py — Consent-aware Evidently drift monitor (Step 6)., Wraps Evidently's DataDriftPreset with per-sample consent-status tagging., Add a ``_consent_status`` column (``"granted"`` / ``"revoked"``) to *df*., Run an Evidently ``DataDriftPreset`` report on *current_df* vs *reference_df*., Inspect ``_consent_status`` and emit one :class:`DriftAlert` per unique (+21 more)
-
-### Community 7 - "Community 7"
-Cohesion: 0.07
-Nodes (21): GET(), getBackendUrl(), handleMessage(), buildHeaders(), DELETE(), GET(), POST(), GET() (+13 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.08
@@ -195,39 +195,39 @@ Nodes (11): OpenTelemetry Observability, ConsentFlow App Service, Backend Docker
 Cohesion: 0.39
 Nodes (7): tests/test_consent.py — Unit tests for /consent endpoints.  Uses in-memory fak, test_get_consent_cache_hit(), test_get_consent_cache_miss(), test_get_consent_not_found(), test_revoke_consent(), test_revoke_consent_not_found(), test_upsert_consent()
 
-### Community 26 - "Community 26"
+### Community 25 - "Community 25"
 Cohesion: 0.43
 Nodes (5): asyncpg_dsn(), postgres_dsn(), redis_url(), Settings, BaseSettings
 
-### Community 27 - "Community 27"
+### Community 26 - "Community 26"
 Cohesion: 0.33
 Nodes (4): GeminiClient, consentflow/gemini_client.py — Async Gemini 2.0 Flash LangChain client.  Refac, Async wrapper using LangChain for the Gemini generateContent REST endpoint., Build a context-aware prompt using LangChain and get a reply.          Tier 1:
 
-### Community 28 - "Community 28"
+### Community 27 - "Community 27"
 Cohesion: 0.7
 Nodes (3): DashboardStatsResponse, get_dashboard_stats(), _get_pool()
 
-### Community 29 - "Community 29"
+### Community 28 - "Community 28"
 Cohesion: 0.5
 Nodes (3): predict_model(), routers/infer.py — Dummy inference endpoints for testing the ConsentMiddleware., Dummy endpoint representing an AI model inference call.      This route sits b
 
-### Community 32 - "Community 32"
+### Community 31 - "Community 31"
 Cohesion: 0.67
 Nodes (4): Frontend Public Brand Asset, Monochrome Black Vector Style, Next.js Framework Brand, Next.js Wordmark Logo
 
-### Community 34 - "Community 34"
+### Community 33 - "Community 33"
 Cohesion: 1.0
 Nodes (3): Document File Icon, Folded Corner Indicator, Text Content Lines
 
-### Community 35 - "Community 35"
+### Community 34 - "Community 34"
 Cohesion: 1.0
 Nodes (3): Circular World Boundary, Globe Earth Icon, Latitude and Longitude Grid
 
-### Community 36 - "Community 36"
+### Community 35 - "Community 35"
 Cohesion: 0.67
 Nodes (3): Inverted Triangle Shape, Minimal Brand Identity, Vercel Logo Mark
 
-### Community 37 - "Community 37"
+### Community 36 - "Community 36"
 Cohesion: 0.67
 Nodes (3): Application Frame Outline, Browser Window Icon, Title Bar Control Dots
 
@@ -239,12 +239,12 @@ Nodes (3): Application Frame Outline, Browser Window Icon, Title Bar Control Dot
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `str` connect `Community 4` to `Community 0`, `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 13`, `Community 14`, `Community 15`, `Community 17`, `Community 18`, `Community 21`?**
-  _High betweenness centrality (0.331) - this node is a cross-community bridge._
-- **Why does `chat_message()` connect `Community 0` to `Community 8`, `Community 3`?**
-  _High betweenness centrality (0.144) - this node is a cross-community bridge._
+- **Why does `str` connect `Community 5` to `Community 0`, `Community 3`, `Community 4`, `Community 6`, `Community 7`, `Community 13`, `Community 14`, `Community 15`, `Community 17`, `Community 18`, `Community 21`?**
+  _High betweenness centrality (0.337) - this node is a cross-community bridge._
+- **Why does `chat_message()` connect `Community 0` to `Community 8`, `Community 4`?**
+  _High betweenness centrality (0.156) - this node is a cross-community bridge._
 - **Why does `FakeRedis` connect `Community 12` to `Community 8`?**
-  _High betweenness centrality (0.099) - this node is a cross-community bridge._
+  _High betweenness centrality (0.112) - this node is a cross-community bridge._
 - **Are the 24 inferred relationships involving `str` (e.g. with `main()` and `register_dataset_with_consent_check()`) actually correct?**
   _`str` has 24 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 13 inferred relationships involving `TrainingGateConsumer` (e.g. with `test_kafka_event_triggers_quarantine()` and `test_quarantine_tags_are_correct()`) actually correct?**
