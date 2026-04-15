@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ConsentFlow Shield</title>
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#6366f1',
+              dark:    '#4f46e5',
+              light:   '#818cf8',
+            },
+            surface: {
+              DEFAULT: '#1e293b',
+              raised:  '#273548',
+              border:  '#334155',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { width: 360px; min-height: 480px; background: #0f172a; margin: 0; }
+    /* Thin custom scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    /* Toggle switch */
+    .toggle-input:checked + .toggle-track { background-color: #6366f1; }
+    .toggle-input:checked + .toggle-track .toggle-thumb { transform: translateX(20px); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="./App.tsx"></script>
+</body>
+</html>

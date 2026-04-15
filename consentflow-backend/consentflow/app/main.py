@@ -147,6 +147,9 @@ def create_app() -> FastAPI:
     app.include_router(dashboard_router.router)
     app.include_router(policy_router)          # prefix="/policy" (Gate 05)
     app.include_router(chat_router.router)     # prefix="/chat"  (Plan 1.5)
+    
+    from consentflow.app.routers import extension
+    app.include_router(extension.router)
 
     # ── Health endpoint ───────────────────────────────────────────────────────
     @app.get(
