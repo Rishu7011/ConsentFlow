@@ -139,14 +139,14 @@ async function handleMessage(message: IncomingMessage): Promise<object> {
       const backendUrl = await getBackendUrl();
 
       try {
-        const res = await fetch(`${backendUrl}/api/v1/consent`, {
-          method: 'PUT',
+        const res = await fetch(`${backendUrl}/consent`, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user_id: userId,
             purpose: 'extension_pii_masking',
             status: enabled ? 'granted' : 'revoked',
-            entity_type: entityType,
+            data_type: entityType,
           }),
         });
         if (!res.ok) {

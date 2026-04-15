@@ -54,31 +54,73 @@ function App() {
         const disabledSites = local.disabledSites ?? [];
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const currentHostname = tab?.url ? new URL(tab.url).hostname : '';
-        setState({ sessionId, counts, backendUrl, disabledSites, currentHostname });
+        let isOnline = false;
+        try {
+          const controller = new AbortController();
+          setTimeout(() => controller.abort(), 2000);
+          const res = await fetch(`${backendUrl}/health`, { signal: controller.signal });
+          isOnline = res.ok;
+        } catch (e) {
+          isOnline = false;
+        }
+
+        setState({ sessionId, counts, backendUrl, disabledSites, currentHostname, isOnline });
         setUrlDraft(backendUrl);
       } catch (e) {
         // Fallback for development outside extension
-        setState({ backendUrl: 'http://localhost:8000' });
+        setState({ backendUrl: 'http://localhost:8000', isOnline: false });
         setUrlDraft('http://localhost:8000');
       }
     })();
   }, []);
 
   const handleToggle = useCallback((type: string) => {
-    setState({ profile: { ...state.profile, [type]: !state.profile[type] } });
+    const newStatus = !state.profile[type];
+    setState({ profile: { ...state.profile, [type]: newStatus } });
+    
+    chrome.runtime.sendMessage({
+      type: 'UPDATE_CONSENT',
+      userId: '00000000-0000-0000-0000-000000000000', // Need a valid UUID for the backend
+      entityType: type,
+      enabled: newStatus
+    }).catch(() => {});
+
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'CONSENT_UPDATED',
+          entityType: type,
+          enabled: newStatus
+        }).catch(() => {});
+      }
+    });
   }, [state.profile]);
 
   const clearVault = () => {
     setState({ counts: {} });
   };
 
-  const saveBackend = () => {
+  const saveBackend = async () => {
     let display = urlDraft.trim();
-    display = display.replace(/^https?:\/\//, '');
-    setState({ backendUrl: display });
+    if (!display.startsWith('http')) {
+      display = 'http://' + display;
+    }
     setEditingUrl(false);
-    // Optional: trigger ping logic here
-    setState({ isOnline: !state.isOnline });
+    
+    // Trigger ping logic here
+    let isOnline = false;
+    try {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 2000);
+      const res = await fetch(`${display}/health`, { signal: controller.signal });
+      isOnline = res.ok;
+    } catch (e) {
+      isOnline = false;
+    }
+    setState({ backendUrl: display, isOnline });
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ backendUrl: display }).catch(() => {});
+    }
   };
 
   const totalProtected = Object.values(state.counts).reduce((a, b) => a + b, 0);

@@ -212,8 +212,8 @@
     "hash": "c120a49ae43060891120a585f23d5a0f"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\vite.config.ts": {
-    "mtime": 1777977606.8455203,
-    "hash": "02019f5e0ce23c94ed4fd6165f6da8d2"
+    "mtime": 1778002293.9280977,
+    "hash": "3cc5d4a6e4d1fe8b343b8f2f219a9c6b"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\vitest.setup.ts": {
     "mtime": 1777977543.333045,
@@ -252,8 +252,8 @@
     "hash": "dfc4c82bf5a2f6161118fb037fec8182"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\popup\\App.tsx": {
-    "mtime": 1777989002.499935,
-    "hash": "2a19cd4b9d7114981c9576510fe6180c"
+    "mtime": 1778002141.28009,
+    "hash": "68918af3acd09972c414e63fa711003e"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\utils\\dummyGenerator.test.ts": {
     "mtime": 1777977108.725117,
@@ -479,6 +479,10 @@
     "mtime": 1777972957.613626,
     "hash": "c6ce22d96ed12509b70fc7d2fe30223a"
   },
+  "D:\\Project\\ConsentFlow\\consentflow_extension_popup.html": {
+    "mtime": 1778001710.0832908,
+    "hash": "36e1a7d35a97a1aa1bb8fec8a90754a8"
+  },
   "D:\\Project\\ConsentFlow\\files.md": {
     "mtime": 1777972957.6742985,
     "hash": "f92512fca845c557cf9e86888255c408"
@@ -536,8 +540,8 @@
     "hash": "59434a7cdfd25e94a8eef95027a806e0"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\popup\\index.html": {
-    "mtime": 1777989024.7434716,
-    "hash": "c3326d696b857f8ad54ba8975f73d9fd"
+    "mtime": 1778002046.77794,
+    "hash": "b668cfcba3582692c090f44c8365ec6c"
   },
   "D:\\Project\\ConsentFlow\\consentflow-frontend\\AGENTS.md": {
     "mtime": 1777972957.6475768,

@@ -118,7 +118,7 @@ async function loadConsentProfile(): Promise<Set<string>> {
     const response = await new Promise<{ ok: boolean; profile?: ConsentProfile }>(
       (resolve, reject) => {
         chrome.runtime.sendMessage(
-          { type: 'GET_CONSENT_PROFILE', userId: 'local' },
+          { type: 'GET_CONSENT_PROFILE', userId: '00000000-0000-0000-0000-000000000000' },
           (res) => {
             if (chrome.runtime.lastError) {
               reject(new Error(chrome.runtime.lastError.message));
