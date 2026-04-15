@@ -1,0 +1,203 @@
+# =============================================================================
+# ConsentFlow — Monorepo .gitignore
+# Stack: Python/FastAPI (uv) + Next.js/TypeScript
+# =============================================================================
+
+# =============================================================================
+# ENVIRONMENT & SECRETS
+# =============================================================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+*.env
+!*.env.example          # keep example/template files
+
+# =============================================================================
+# PYTHON — BACKEND (consentflow-backend)
+# =============================================================================
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.virtualenv/
+
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+MANIFEST
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.lcov
+nosetests.xml
+test-results/
+
+# MyPy / type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Ruff / linting
+.ruff_cache/
+
+# uv
+.uv/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# =============================================================================
+# MLFLOW
+# =============================================================================
+mlflow.db
+mlruns/
+mlartifacts/
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+# Ignore any locally persisted volumes or override files
+docker-compose.override.yml
+docker-compose.*.override.yml
+
+# =============================================================================
+# GRAFANA / OBSERVABILITY (locally persisted data)
+# =============================================================================
+consentflow-backend/grafana/data/
+consentflow-backend/grafana/logs/
+
+# =============================================================================
+# NODE / NEXT.JS — FRONTEND (consentflow-frontend)
+# =============================================================================
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+
+# Production build
+dist/
+build/
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# ESLint cache
+.eslintcache
+
+# Testing
+coverage/
+.nyc_output/
+
+# Storybook
+storybook-static/
+
+# =============================================================================
+# EDITORS & IDEs
+# =============================================================================
+
+# VS Code
+.vscode/
+!.vscode/extensions.json   # keep recommended extensions
+
+# JetBrains (PyCharm, WebStorm, IntelliJ)
+.idea/
+*.iml
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# =============================================================================
+# OS GENERATED FILES
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# =============================================================================
+# LOGS & TEMP FILES
+# =============================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.tmp
+*.temp
+tmp/
+temp/
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+# Vercel
+.vercel/
+
+# Sentry
+.sentryclirc
+
+# Lock files — keep package-lock.json and uv.lock but ignore others if unused
+# yarn.lock        # uncomment if not using yarn
+# pnpm-lock.yaml   # uncomment if not using pnpm

@@ -1,0 +1,37 @@
+{
+  "chunks": [
+    [
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\backend.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\files.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\frontend.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\GEMINI.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\plan.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\presentation.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\project-summary.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\README.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-backend\\docker-compose.yml",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-backend\\otel-collector-config.yaml",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-backend\\README.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-backend\\grafana\\provisioning\\dashboards\\dashboard.yaml",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-backend\\grafana\\provisioning\\datasources\\prometheus.yaml",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\AGENTS.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\CLAUDE.md",
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\README.md"
+    ],
+    [
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\public\\file.svg"
+    ],
+    [
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\public\\globe.svg"
+    ],
+    [
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\public\\next.svg"
+    ],
+    [
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\public\\vercel.svg"
+    ],
+    [
+      "C:\\Users\\negir\\OneDrive\\Desktop\\ConsentFlow-\\consentflow-frontend\\public\\window.svg"
+    ]
+  ]
+}

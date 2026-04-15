@@ -1,0 +1,52 @@
+## otel-collector-config.yaml
+##
+## OpenTelemetry Collector pipeline for ConsentFlow (Step 7).
+##
+## Pipeline
+## --------
+##   Receivers  : OTLP (gRPC on 4317, HTTP on 4318)
+##   Processors : batch (reduces export overhead)
+##   Exporters  : logging (stdout for debugging) + prometheus (Grafana scrapes on 8889)
+##
+## Grafana connects to the Prometheus exporter at http://otel-collector:8889/metrics.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+exporters:
+  # Debug logging — prints spans to collector stdout (useful in dev)
+  debug:
+    verbosity: normal
+
+  # Prometheus exporter — Grafana scrapes this endpoint
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: consentflow
+    const_labels:
+      service: consentflow
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]

@@ -1,0 +1,88 @@
+[project]
+name = "consentflow"
+version = "0.3.0"
+description = "Consent-enforcement middleware for AI pipelines"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    # Database
+    "asyncpg>=0.29.0",
+    # Cache
+    "redis[hiredis]>=5.0.0",
+    # Validation & settings
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "email-validator>=2.2.0",
+    # Kafka async client — added with:
+    #   uv add "aiokafka>=0.11.0"
+    "aiokafka>=0.11.0",
+    # ── Step 3: Dataset Gate ───────────────────────────────────────────────────
+    # PII detection & anonymisation (Plan 1.1b — full entity coverage)
+    "presidio-analyzer>=2.2.354",
+    "presidio-anonymizer>=2.2.354",
+    # spaCy NLP model download is handled separately:
+    #   python -m spacy download en_core_web_lg
+    "spacy>=3.7.0",
+    # ML experiment tracking (used by dataset_gate + training_gate)
+    "mlflow>=2.13.0",
+    # ── Step 4: Inference Gate ─────────────────────────────────────────────────
+    "langchain-core>=0.2.0",
+    "langchain-google-genai>=1.0.0",
+    "langchain-mistralai>=0.1.0",
+    "langchain-ollama>=0.1.0",
+    # ── Step 5: Training Gate ──────────────────────────────────────────────────
+    # No additional runtime deps: mlflow + aiokafka already declared above.
+    # Tests use pytest + unittest.mock (stdlib) — no extra test deps needed.
+    # ── Step 6: Drift Monitor ──────────────────────────────────────────────────────
+    # Evidently AI — consent-aware drift reporting.
+    "evidently>=0.4.0",
+    # ── Step 7: Observability Dashboard ───────────────────────────────────────────
+    # OpenTelemetry SDK + OTLP gRPC exporter for trace instrumentation.
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.24.0",
+    # ── Gate 05: Policy Auditor ────────────────────────────────────────────────
+    # Uses local Ollama LLM via OpenAI-compatible endpoint (no new SDK needed).
+    # HTTP client for fetching policy documents by URL and calling Ollama.
+    "httpx>=0.27.0",
+]
+
+[dependency-groups]
+dev = [
+    # Testing
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",          # ASGI test client for FastAPI
+    "anyio>=4.4.0",
+    # Linting & formatting
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    # Type stubs
+    "types-redis>=4.6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["consentflow"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

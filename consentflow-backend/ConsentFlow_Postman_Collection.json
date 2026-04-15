@@ -1,0 +1,583 @@
+{
+  "info": {
+    "name": "ConsentFlow — Full Backend Test Suite",
+    "_postman_id": "consentflow-backend-v2",
+    "description": "Complete test suite for the ConsentFlow backend including the new RAG Chat + Gemini endpoints (Plan 1.5).\n\nRun the requests IN ORDER — each one builds on the previous.\n\nPre-requisite: Docker stack running on localhost:8000\n  cd consentflow-backend && docker compose up --build",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "demo_user_id",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0 — Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('postgres ok', () => pm.expect(json.postgres).to.eql('ok'));",
+                  "pm.test('redis ok',    () => pm.expect(json.redis).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 — Users",
+      "item": [
+        {
+          "name": "POST /users — create user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rishabh@example.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('has id', () => pm.expect(json.id).to.be.a('string'));",
+                  "// Save for later requests",
+                  "pm.collectionVariables.set('created_user_id', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /users/{user_id} — get demo user",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/{{demo_user_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('correct id', () => pm.expect(json.id).to.eql(pm.collectionVariables.get('demo_user_id')));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 — Consent",
+      "item": [
+        {
+          "name": "POST /consent — grant model_training",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/consent",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"data_type\": \"pii\",\n  \"purpose\": \"model_training\",\n  \"status\": \"granted\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('status granted', () => pm.expect(json.status).to.eql('granted'));",
+                  "pm.test('purpose model_training', () => pm.expect(json.purpose).to.eql('model_training'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /consent/{user_id}/model_training — verify grant",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/consent/{{demo_user_id}}/model_training"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('status is granted', () => pm.expect(json.status).to.eql('granted'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 — Chat (BEFORE revocation)",
+      "item": [
+        {
+          "name": "POST /chat/message — send name (Test 2)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/chat/message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"message\": \"hii my name is rishabh call me rishabh\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('trained=true (consent granted)', () => pm.expect(json.trained_on_message).to.be.true);",
+                  "pm.test('PERSON detected by Presidio', () => pm.expect(json.pii_detected).to.include('PERSON'));",
+                  "pm.test('message redacted', () => pm.expect(json.message_redacted).to.include('<REDACTED>'));",
+                  "pm.test('not frozen yet', () => pm.expect(json.memory_state.frozen).to.be.false);",
+                  "pm.test('has Gemini reply', () => pm.expect(json.reply).to.be.a('string').and.not.empty);",
+                  "console.log('Reply:', json.reply);",
+                  "console.log('Memory count:', json.memory_state.memory_count);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /chat/message — send hobby (Test 3)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/chat/message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"message\": \"i like to do calisthenics\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('trained=true', () => pm.expect(json.trained_on_message).to.be.true);",
+                  "pm.test('at least 1 memory stored', () => pm.expect(json.memory_state.memory_count).to.be.at.least(1));",
+                  "console.log('Memories so far:', json.memory_state.memories);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /chat/state — 2 memories, frozen=false (Test 4)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/chat/state/{{demo_user_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('NOT frozen', () => pm.expect(json.frozen).to.be.false);",
+                  "pm.test('frozen_at_count is null', () => pm.expect(json.frozen_at_count).to.be.null);",
+                  "pm.test('consent granted', () => pm.expect(json.consent_status).to.eql('granted'));",
+                  "pm.test('has memories', () => pm.expect(json.memory_count).to.be.at.least(1));",
+                  "// save count for later comparison",
+                  "pm.collectionVariables.set('pre_freeze_count', json.memory_count);",
+                  "console.log('Pre-freeze memory count:', json.memory_count);",
+                  "console.log('Memories:', JSON.stringify(json.memories));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /chat/message — ask about self (uses memories)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/chat/message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"message\": \"what is my name and what do i like to do?\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('has memories to use', () => pm.expect(json.memories_used.length).to.be.at.least(1));",
+                  "console.log('Gemini answer (should mention Rishabh + calisthenics):', json.reply);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 — Revoke Consent",
+      "item": [
+        {
+          "name": "POST /webhook/consent-revoke — fire revocation (Test 5)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/webhook/consent-revoke",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{demo_user_id}}\",\n  \"purpose\": \"model_training\",\n  \"consentStatus\": \"revoked\",\n  \"timestamp\": \"2026-04-29T10:00:00Z\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('status propagated', () => pm.expect(json.status).to.eql('propagated'));",
+                  "pm.test('kafka_published true', () => pm.expect(json.kafka_published).to.be.true);",
+                  "pm.test('no warning', () => pm.expect(json.warning).to.be.null);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5 — Chat (AFTER revocation)",
+      "item": [
+        {
+          "name": "POST /chat/message — new name after revoke (Test 6)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/chat/message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"message\": \"now call me rishu\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('trained=false (consent revoked)', () => pm.expect(json.trained_on_message).to.be.false);",
+                  "pm.test('PERSON detected', () => pm.expect(json.pii_detected).to.include('PERSON'));",
+                  "pm.test('rishu is REDACTED', () => pm.expect(json.message_redacted).to.include('<REDACTED>'));",
+                  "pm.test('memory is FROZEN', () => pm.expect(json.memory_state.frozen).to.be.true);",
+                  "pm.test('consent is revoked', () => pm.expect(json.consent_status).to.eql('revoked'));",
+                  "console.log('Redacted message:', json.message_redacted);",
+                  "console.log('Frozen at count:', json.memory_state.frozen_at_count);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /chat/message — gym after revoke (not stored)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/chat/message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"message\": \"i like to do gym now\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('trained=false', () => pm.expect(json.trained_on_message).to.be.false);",
+                  "pm.test('memory count unchanged', () => {",
+                  "  const preFreezeCount = pm.collectionVariables.get('pre_freeze_count');",
+                  "  pm.expect(json.memory_state.memory_count).to.eql(preFreezeCount);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /chat/message — ask hobby (Gemini answers from frozen memory) (Test 7)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/chat/message",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{demo_user_id}}\",\n  \"message\": \"what do i like to do?\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('trained=false', () => pm.expect(json.trained_on_message).to.be.false);",
+                  "pm.test('still frozen', () => pm.expect(json.memory_state.frozen).to.be.true);",
+                  "// Gemini should say calisthenics, not gym",
+                  "const reply = json.reply.toLowerCase();",
+                  "pm.test('Gemini mentions calisthenics (not gym)', () => {",
+                  "  pm.expect(reply).to.include('calisthenics');",
+                  "});",
+                  "console.log('Gemini reply (should say calisthenics, NOT gym):', json.reply);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /chat/state — frozen=true, count identical to pre-freeze (Test 8)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/chat/state/{{demo_user_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('IS frozen', () => pm.expect(json.frozen).to.be.true);",
+                  "pm.test('consent revoked', () => pm.expect(json.consent_status).to.eql('revoked'));",
+                  "pm.test('frozen_at_count equals pre-freeze count', () => {",
+                  "  const preFreezeCount = pm.collectionVariables.get('pre_freeze_count');",
+                  "  pm.expect(json.frozen_at_count).to.eql(preFreezeCount);",
+                  "});",
+                  "pm.test('memory count unchanged', () => {",
+                  "  const preFreezeCount = pm.collectionVariables.get('pre_freeze_count');",
+                  "  pm.expect(json.memory_count).to.eql(preFreezeCount);",
+                  "});",
+                  "console.log('Final state:', JSON.stringify(json, null, 2));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6 — Chat History",
+      "item": [
+        {
+          "name": "GET /chat/history — all messages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/chat/history?user_id={{demo_user_id}}&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "history"],
+              "query": [
+                { "key": "user_id", "value": "{{demo_user_id}}" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('has entries', () => pm.expect(json.entries.length).to.be.at.least(1));",
+                  "pm.test('entries have message_redacted field', () => {",
+                  "  json.entries.forEach(e => pm.expect(e).to.have.property('message_redacted'));",
+                  "});",
+                  "pm.test('entries have pii_detected field', () => {",
+                  "  json.entries.forEach(e => pm.expect(e).to.have.property('pii_detected'));",
+                  "});",
+                  "console.log('Total chat entries:', json.total);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7 — Demo Reset",
+      "item": [
+        {
+          "name": "DELETE /chat/state — reset all memory",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/chat/state/{{demo_user_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('reset=true', () => pm.expect(json.reset).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /chat/state — verify clean slate after reset",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/chat/state/{{demo_user_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('memories cleared', () => pm.expect(json.memory_count).to.eql(0));",
+                  "pm.test('not frozen', () => pm.expect(json.frozen).to.be.false);",
+                  "console.log('State after reset:', JSON.stringify(json));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8 — Audit Trail",
+      "item": [
+        {
+          "name": "GET /audit/trail — all events for demo user",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/audit/trail?user_id={{demo_user_id}}&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["audit", "trail"],
+              "query": [
+                { "key": "user_id", "value": "{{demo_user_id}}" },
+                { "key": "limit", "value": "50" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('has audit entries', () => pm.expect(json.entries.length).to.be.at.least(1));",
+                  "const gates = json.entries.map(e => e.gate_name);",
+                  "pm.test('training_gate events present', () => pm.expect(gates).to.include('training_gate'));",
+                  "console.log('Gates seen:', [...new Set(gates)]);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9 — Inference Gate",
+      "item": [
+        {
+          "name": "POST /infer/predict — blocked (consent still revoked)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-ID", "value": "{{demo_user_id}}" }
+            ],
+            "url": "{{base_url}}/infer/predict",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"hello\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 Forbidden — consent revoked', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 — Swagger Docs",
+      "item": [
+        {
+          "name": "GET /docs — Swagger UI available",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/docs"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
