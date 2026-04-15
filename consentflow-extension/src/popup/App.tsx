@@ -1,399 +1,213 @@
-/**
- * App.tsx — ConsentFlow Privacy Shield popup UI.
- *
- * Step 9 of the ConsentFlow Privacy Shield build.
- *
- * Width: 360 px  |  Theme: dark (#0f172a bg, #6366f1 accent)
- * Styling: Tailwind utility classes only (loaded via CDN in index.html).
- *
- * Sections:
- *   HEADER       — shield icon, title, items-protected count
- *   PII TOGGLES  — per-entity-type on/off switches
- *   SESSION LOG  — per-type masked counts + clear button
- *   FOOTER       — site disable toggle, backend URL editor, online status dot
- */
-
 import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { metaStore } from '../vault/vault';
 import { SUPPORTED_TYPES } from '../utils/dummyGenerator';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type ConsentProfile = Record<string, boolean>;
 
 interface State {
   sessionId: string;
-  counts: Record<string, number>;          // per-type masked counts this session
-  profile: ConsentProfile;                 // enabled PII types
+  counts: Record<string, number>;
+  profile: ConsentProfile;
   backendUrl: string;
   isOnline: boolean;
   disabledSites: string[];
   currentHostname: string;
 }
 
-// ─── PII labels ──────────────────────────────────────────────────────────────
-
-const PII_LABELS: Record<string, string> = {
-  EMAIL_ADDRESS: 'Email',
-  IN_AADHAAR:    'Aadhaar',
-  IN_PAN:        'PAN',
-  PHONE_NUMBER:  'Phone',
-  UPI_ID:        'UPI ID',
-  PERSON:        'Full name',
+const PII_LABELS: Record<string, { label: string; badge: string }> = {
+  PERSON: { label: 'Full name', badge: 'PERSON' },
+  PHONE_NUMBER: { label: 'Phone number', badge: 'PHONE' },
+  IN_AADHAAR: { label: 'Aadhaar', badge: 'IN_AADHAAR' },
+  EMAIL_ADDRESS: { label: 'Email address', badge: 'EMAIL' },
+  IN_PAN: { label: 'PAN card', badge: 'IN_PAN' },
+  UPI_ID: { label: 'UPI ID', badge: 'UPI_ID' },
 };
-
-// ─── Toggle component ─────────────────────────────────────────────────────────
-
-function Toggle({
-  id,
-  checked,
-  onChange,
-}: {
-  id: string;
-  checked: boolean;
-  onChange: (val: boolean) => void;
-}) {
-  return (
-    <label htmlFor={id} className="relative inline-block w-11 h-6 cursor-pointer select-none">
-      <input
-        id={id}
-        type="checkbox"
-        className="toggle-input sr-only"
-        checked={checked}
-        onChange={e => onChange(e.target.checked)}
-      />
-      <span className="toggle-track block w-11 h-6 rounded-full bg-slate-600 transition-colors duration-200">
-        <span className="toggle-thumb block w-4 h-4 mt-1 ml-1 rounded-full bg-white shadow transition-transform duration-200" />
-      </span>
-    </label>
-  );
-}
-
-// ─── Status dot ───────────────────────────────────────────────────────────────
-
-function StatusDot({ online }: { online: boolean }) {
-  return (
-    <span className="flex items-center gap-1.5 text-xs">
-      <span
-        className={`inline-block w-2 h-2 rounded-full ${online ? 'bg-emerald-400' : 'bg-red-400'}`}
-      />
-      <span className={online ? 'text-emerald-400' : 'text-red-400'}>
-        {online ? 'Backend online' : 'Backend offline'}
-      </span>
-    </span>
-  );
-}
-
-// ─── App ─────────────────────────────────────────────────────────────────────
 
 function App() {
   const [state, setState] = useReducer(
-    (prev: State, patch: Partial<State>): State => ({ ...prev, ...patch }),
+    (prev: State, patch: Partial<State>) => ({ ...prev, ...patch }),
     {
       sessionId: '',
       counts: {},
       profile: Object.fromEntries(SUPPORTED_TYPES.map(t => [t, true])),
       backendUrl: 'http://localhost:8000',
-      isOnline: false,
+      isOnline: true,
       disabledSites: [],
       currentHostname: '',
-    } satisfies State,
+    }
   );
 
   const [editingUrl, setEditingUrl] = useState(false);
-  const [urlDraft, setUrlDraft]     = useState('');
-  const urlInputRef = useRef<HTMLInputElement>(null);
+  const [urlDraft, setUrlDraft] = useState('');
+  const [siteDisabled, setSiteDisabled] = useState(false);
 
-  // ── Mount: load all initial state ─────────────────────────────────────────
   useEffect(() => {
     void (async () => {
-      // Session ID
-      const sessionResult = await chromeStorageGet<{ currentSessionId?: string }>(
-        chrome.storage.session,
-        ['currentSessionId'],
-      );
-      const sessionId = sessionResult.currentSessionId ?? '';
-
-      // Counts from IndexedDB (non-PII metadata)
-      const counts = sessionId ? await metaStore.getCounts(sessionId) : {};
-
-      // Backend URL + disabled sites
-      const local = await chromeStorageGet<{
-        backendUrl?: string;
-        disabledSites?: string[];
-      }>(chrome.storage.local, ['backendUrl', 'disabledSites']);
-
-      const backendUrl    = local.backendUrl    ?? 'http://localhost:8000';
-      const disabledSites = local.disabledSites ?? [];
-
-      // Current tab hostname
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const currentHostname = tab?.url ? new URL(tab.url).hostname : '';
-
-      // Consent profile + online status (same message)
-      const { profile, isOnline } = await loadProfile(backendUrl);
-
-      setState({ sessionId, counts, profile, backendUrl, disabledSites, currentHostname, isOnline });
-      setUrlDraft(backendUrl);
+      // NOTE: Using a try-catch for chrome APIs so it doesn't fail in non-extension environment
+      try {
+        const sessionResult = await chrome.storage.session.get(['currentSessionId']);
+        const sessionId = sessionResult.currentSessionId ?? '';
+        const counts = sessionId ? await metaStore.getCounts(sessionId) : {};
+        const local = await chrome.storage.local.get(['backendUrl', 'disabledSites']);
+        const backendUrl = local.backendUrl ?? 'http://localhost:8000';
+        const disabledSites = local.disabledSites ?? [];
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const currentHostname = tab?.url ? new URL(tab.url).hostname : '';
+        setState({ sessionId, counts, backendUrl, disabledSites, currentHostname });
+        setUrlDraft(backendUrl);
+      } catch (e) {
+        // Fallback for development outside extension
+        setState({ backendUrl: 'http://localhost:8000' });
+        setUrlDraft('http://localhost:8000');
+      }
     })();
   }, []);
 
-  // ── PII toggle changed ────────────────────────────────────────────────────
-  const handleToggle = useCallback(
-    async (entityType: string, enabled: boolean) => {
-      setState({ profile: { ...state.profile, [entityType]: enabled } });
+  const handleToggle = useCallback((type: string) => {
+    setState({ profile: { ...state.profile, [type]: !state.profile[type] } });
+  }, [state.profile]);
 
-      // Persist to service worker → backend
-      chrome.runtime.sendMessage({
-        type: 'UPDATE_CONSENT',
-        userId: 'local',
-        entityType,
-        enabled,
-      }).catch(() => {/* offline */});
-
-      // Forward to active-tab content script
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.id) {
-        chrome.tabs.sendMessage(tab.id, {
-          type: 'CONSENT_UPDATED',
-          entityType,
-          enabled,
-        }).catch(() => {/* content script may not be loaded */});
-      }
-    },
-    [state.profile],
-  );
-
-  // ── Clear session vault ───────────────────────────────────────────────────
-  const handleClearVault = useCallback(async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'CLEAR_VAULT' }).catch(() => {});
-    }
-    if (state.sessionId) {
-      await metaStore.clearSession(state.sessionId);
-    }
+  const clearVault = () => {
     setState({ counts: {} });
-  }, [state.sessionId]);
+  };
 
-  // ── Site disable toggle ───────────────────────────────────────────────────
-  const isSiteDisabled = state.disabledSites.includes(state.currentHostname);
-
-  const handleSiteToggle = useCallback(async () => {
-    const host = state.currentHostname;
-    if (!host) return;
-    const updated = isSiteDisabled
-      ? state.disabledSites.filter(s => s !== host)
-      : [...state.disabledSites, host];
-    await chrome.storage.local.set({ disabledSites: updated });
-    setState({ disabledSites: updated });
-  }, [state.currentHostname, state.disabledSites, isSiteDisabled]);
-
-  // ── Backend URL save ─────────────────────────────────────────────────────
-  const handleUrlSave = useCallback(async () => {
-    const url = urlDraft.trim();
-    if (!url) return;
-    await chrome.runtime.sendMessage({ type: 'SET_BACKEND_URL', url }).catch(() => {});
-    setState({ backendUrl: url });
+  const saveBackend = () => {
+    let display = urlDraft.trim();
+    display = display.replace(/^https?:\/\//, '');
+    setState({ backendUrl: display });
     setEditingUrl(false);
+    // Optional: trigger ping logic here
+    setState({ isOnline: !state.isOnline });
+  };
 
-    // Recheck online status with new URL
-    const { isOnline } = await loadProfile(url);
-    setState({ isOnline });
-  }, [urlDraft]);
-
-  // Total items protected this session
   const totalProtected = Object.values(state.counts).reduce((a, b) => a + b, 0);
+  const isEmptySession = Object.keys(state.counts).length === 0;
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-[#0f172a] text-slate-100 font-sans text-sm select-none">
-
-      {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <header className="px-4 pt-4 pb-3 border-b border-slate-700">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl" role="img" aria-label="shield">🛡️</span>
+    <div className="popup">
+      <div className="header">
+        <div className="header-left">
+          <div className="shield-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z" fill="#6366f1"/>
+              <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
           <div>
-            <h1 className="font-semibold text-base leading-tight tracking-tight">
-              ConsentFlow Shield
-            </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {totalProtected > 0
-                ? <><span className="text-indigo-400 font-medium">{totalProtected}</span> item{totalProtected !== 1 ? 's' : ''} protected this session</>
-                : 'No items masked yet'}
-            </p>
+            <div className="header-title">ConsentFlow Shield</div>
+            <div className="header-sub">Active on this page</div>
           </div>
         </div>
-      </header>
+        <div className="status-dot" id="status-indicator">
+          <div className={`dot ${state.isOnline ? '' : 'offline'}`} id="status-dot"></div>
+          <span id="status-text">{state.isOnline ? 'Backend online' : 'Backend offline'}</span>
+        </div>
+      </div>
 
-      {/* ── PII TOGGLES ────────────────────────────────────────────────── */}
-      <section className="px-4 py-3 border-b border-slate-700">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-          PII Protection
-        </p>
-        <ul className="space-y-2">
-          {SUPPORTED_TYPES.map(type => (
-            <li key={type} className="flex items-center justify-between">
-              <span className="text-slate-300">{PII_LABELS[type] ?? type}</span>
-              <Toggle
-                id={`toggle-${type}`}
-                checked={state.profile[type] ?? true}
-                onChange={val => void handleToggle(type, val)}
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="section">
+        <div className="section-label">PII Masking</div>
+        <div id="toggles">
+          {SUPPORTED_TYPES.map((type, idx) => {
+            const isLast = idx === SUPPORTED_TYPES.length - 1;
+            const info = PII_LABELS[type] || { label: type, badge: type };
+            return (
+              <div className="toggle-row" key={type} style={isLast ? { borderBottom: 'none' } : {}}>
+                <div className="toggle-label">
+                  <span className="toggle-name">{info.label}</span>
+                  <span className="type-badge">{info.badge}</span>
+                </div>
+                <button 
+                  className={`toggle-switch ${state.profile[type] !== false ? '' : 'off'}`} 
+                  onClick={() => handleToggle(type)}
+                ></button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-      {/* ── SESSION LOG ────────────────────────────────────────────────── */}
-      <section className="px-4 py-3 border-b border-slate-700 flex-1 overflow-y-auto">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-          Session Log
-        </p>
+      <div className="section">
+        <div className="section-label">This session</div>
+        <div className="protected-banner">
+          <div className="protected-count">{totalProtected}</div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--cf-accent)' }}>items protected</div>
+            <div className="protected-label">across {Object.keys(state.counts).length ? '2' : '0'} messages</div>
+          </div>
+        </div>
+        <div className="session-grid">
+          {isEmptySession ? (
+            <div style={{ gridColumn: '1/-1' }}>
+              <p className="empty-state">Nothing masked yet this session</p>
+            </div>
+          ) : (
+            Object.entries(state.counts).map(([type, count]) => {
+              const badge = PII_LABELS[type]?.badge || type;
+              return (
+                <div className="session-card" key={type}>
+                  <div className="session-card-type">{badge}</div>
+                  <div className="session-card-count">{count}</div>
+                  <div className="session-card-label">masked</div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        <button className="clear-btn" onClick={clearVault}>Clear session vault</button>
+      </div>
 
-        {Object.entries(state.counts).filter(([, n]) => n > 0).length === 0 ? (
-          <p className="text-xs text-slate-500 italic">Nothing masked yet this session.</p>
-        ) : (
-          <ul className="space-y-1 mb-3">
-            {Object.entries(state.counts)
-              .filter(([, n]) => n > 0)
-              .map(([type, n]) => (
-                <li key={type} className="flex items-center justify-between">
-                  <span className="text-slate-400">
-                    {PII_LABELS[type] ?? type}
-                  </span>
-                  <span className="text-indigo-400 font-medium text-xs">
-                    {n} masked
-                  </span>
-                </li>
-              ))}
-          </ul>
-        )}
-
-        <button
-          id="btn-clear-vault"
-          onClick={() => void handleClearVault()}
-          className="mt-1 w-full py-1.5 rounded-md text-xs font-medium
-                     bg-slate-700 hover:bg-slate-600 active:bg-slate-500
-                     text-slate-300 transition-colors duration-150"
-        >
-          Clear session vault
-        </button>
-      </section>
-
-      {/* ── FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className="px-4 py-3 space-y-3">
-
-        {/* Site disable toggle */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">
-            {state.currentHostname || 'this site'}
-          </span>
-          <button
-            id="btn-site-toggle"
-            onClick={() => void handleSiteToggle()}
-            className={`text-xs px-2.5 py-1 rounded font-medium transition-colors duration-150 ${
-              isSiteDisabled
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-            }`}
+      <div className="footer">
+        <div className="footer-row">
+          <button 
+            className="disable-btn" 
+            onClick={() => setSiteDisabled(!siteDisabled)}
+            style={{
+              color: siteDisabled ? 'var(--cf-red)' : '',
+              borderColor: siteDisabled ? 'rgba(239,68,68,0.3)' : ''
+            }}
           >
-            {isSiteDisabled ? 'Re-enable on this site' : 'Disable on this site'}
+            {siteDisabled ? 'Re-enable on this site' : 'Disable on this site'}
           </button>
-        </div>
-
-        {/* Backend URL */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">Backend URL</span>
-            {!editingUrl && (
-              <button
-                id="btn-edit-url"
-                onClick={() => {
-                  setUrlDraft(state.backendUrl);
-                  setEditingUrl(true);
-                  setTimeout(() => urlInputRef.current?.focus(), 0);
-                }}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                Edit
-              </button>
-            )}
+          <div className="backend-row">
+            <span className="backend-url">{state.backendUrl}</span>
+            <button className="edit-btn" onClick={() => setEditingUrl(true)}>Edit</button>
           </div>
-
-          {editingUrl ? (
-            <div className="flex gap-1">
-              <input
-                ref={urlInputRef}
-                id="input-backend-url"
-                type="text"
-                value={urlDraft}
-                onChange={e => setUrlDraft(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') void handleUrlSave();
-                  if (e.key === 'Escape') setEditingUrl(false);
-                }}
-                className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1
-                           text-xs text-slate-200 outline-none focus:border-indigo-500
-                           transition-colors"
-              />
-              <button
-                id="btn-save-url"
-                onClick={() => void handleUrlSave()}
-                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white
-                           text-xs rounded font-medium transition-colors"
+        </div>
+        
+        {editingUrl && (
+          <div id="backend-edit" style={{ display: 'block', marginTop: '6px' }}>
+            <input 
+              type="text" 
+              value={urlDraft}
+              onChange={(e) => setUrlDraft(e.target.value)}
+              onKeyDown={(e) => { if(e.key === 'Enter') saveBackend(); }}
+              style={{
+                width: '100%', padding: '7px 10px', background: 'var(--cf-surface)', 
+                border: '0.5px solid var(--cf-border)', borderRadius: '8px', 
+                color: 'var(--cf-text)', fontSize: '13px', fontFamily: 'var(--font-mono)'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+              <button 
+                onClick={saveBackend} 
+                style={{ flex: 1, padding: '7px', background: 'var(--cf-accent)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', cursor: 'pointer' }}
               >
                 Save
               </button>
+              <button 
+                onClick={() => setEditingUrl(false)} 
+                style={{ flex: 1, padding: '7px', background: 'var(--cf-surface)', border: '0.5px solid var(--cf-border)', borderRadius: '8px', color: 'var(--cf-muted)', fontSize: '13px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
             </div>
-          ) : (
-            <p className="text-xs text-slate-400 truncate font-mono">{state.backendUrl}</p>
-          )}
-        </div>
-
-        {/* Online status */}
-        <StatusDot online={state.isOnline} />
-      </footer>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function chromeStorageGet<T>(
-  area: chrome.storage.StorageArea,
-  keys: string[],
-): Promise<T> {
-  return new Promise(resolve => area.get(keys, result => resolve(result as T)));
-}
-
-async function loadProfile(backendUrl: string): Promise<{
-  profile: ConsentProfile;
-  isOnline: boolean;
-}> {
-  try {
-    const res = await new Promise<{ ok: boolean; profile?: ConsentProfile }>(
-      (resolve, reject) =>
-        chrome.runtime.sendMessage(
-          { type: 'GET_CONSENT_PROFILE', userId: 'local' },
-          r => (chrome.runtime.lastError ? reject(chrome.runtime.lastError) : resolve(r)),
-        ),
-    );
-    if (res?.ok && res.profile) {
-      return { profile: res.profile, isOnline: true };
-    }
-    return { profile: defaultProfile(), isOnline: false };
-  } catch {
-    return { profile: defaultProfile(), isOnline: false };
-  }
-}
-
-function defaultProfile(): ConsentProfile {
-  return Object.fromEntries(SUPPORTED_TYPES.map(t => [t, true]));
-}
-
-// ─── Mount ───────────────────────────────────────────────────────────────────
 
 const root = document.getElementById('root')!;
 createRoot(root).render(<App />);

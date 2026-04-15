@@ -4,37 +4,164 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ConsentFlow Shield</title>
-  <!-- Tailwind CSS v3 CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              DEFAULT: '#6366f1',
-              dark:    '#4f46e5',
-              light:   '#818cf8',
-            },
-            surface: {
-              DEFAULT: '#1e293b',
-              raised:  '#273548',
-              border:  '#334155',
-            },
-          },
-        },
-      },
-    };
-  </script>
   <style>
-    body { width: 360px; min-height: 480px; background: #0f172a; margin: 0; }
+    :root {
+      --cf-bg: #0f172a;
+      --cf-surface: #1e293b;
+      --cf-surface2: #263147;
+      --cf-border: rgba(255,255,255,0.08);
+      --cf-accent: #6366f1;
+      --cf-accent-dim: rgba(99,102,241,0.15);
+      --cf-text: #f1f5f9;
+      --cf-muted: #94a3b8;
+      --cf-green: #22c55e;
+      --cf-red: #ef4444;
+      --font-sans: system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { background: transparent; font-family: var(--font-sans); }
+    .popup {
+      width: 360px;
+      height: 520px;
+      background: var(--cf-bg);
+      border: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+      color: var(--cf-text);
+      font-size: 14px;
+      margin: 0 auto;
+    }
     /* Thin custom scrollbar */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
-    /* Toggle switch */
-    .toggle-input:checked + .toggle-track { background-color: #6366f1; }
-    .toggle-input:checked + .toggle-track .toggle-thumb { transform: translateX(20px); }
+
+    .header {
+      padding: 16px 18px 14px;
+      border-bottom: 0.5px solid var(--cf-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .shield-icon {
+      width: 32px; height: 32px;
+      background: var(--cf-accent-dim);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .shield-icon svg { width: 18px; height: 18px; }
+    .header-title { font-size: 15px; font-weight: 500; color: var(--cf-text); }
+    .header-sub { font-size: 12px; color: var(--cf-muted); margin-top: 1px; }
+    .status-dot {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--cf-muted);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cf-green); }
+    .dot.offline { background: var(--cf-red); }
+    .section { padding: 14px 18px; border-bottom: 0.5px solid var(--cf-border); }
+    .section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+      color: var(--cf-muted); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0;
+    }
+    .toggle-row:not(:last-child) { border-bottom: 0.5px solid var(--cf-border); }
+    .toggle-label { display: flex; align-items: center; gap: 8px; }
+    .type-badge {
+      font-size: 10px; font-weight: 500;
+      padding: 2px 6px; border-radius: 4px;
+      background: var(--cf-surface2);
+      color: var(--cf-muted);
+      letter-spacing: 0.03em;
+    }
+    .toggle-name { font-size: 13px; color: var(--cf-text); }
+    .toggle-switch {
+      width: 36px; height: 20px;
+      border-radius: 10px;
+      background: var(--cf-accent);
+      position: relative; cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      border: none; outline: none;
+    }
+    .toggle-switch.off { background: var(--cf-surface2); }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle-switch.off::after { transform: translateX(0); }
+    .toggle-switch:not(.off):after { transform: translateX(16px); }
+    .session-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .session-card {
+      background: var(--cf-surface);
+      border-radius: 8px;
+      padding: 10px 12px;
+      border: 0.5px solid var(--cf-border);
+    }
+    .session-card-type { font-size: 10px; color: var(--cf-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .session-card-count { font-size: 20px; font-weight: 500; color: var(--cf-text); }
+    .session-card-label { font-size: 11px; color: var(--cf-muted); margin-top: 1px; }
+    .empty-state {
+      font-size: 13px; color: var(--cf-muted);
+      text-align: center; padding: 12px 0 4px;
+    }
+    .clear-btn {
+      width: 100%; padding: 8px;
+      background: transparent;
+      border: 0.5px solid var(--cf-border);
+      border-radius: 8px;
+      color: var(--cf-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-top: 10px;
+    }
+    .clear-btn:hover { background: var(--cf-surface); color: var(--cf-text); }
+    .footer { padding: 12px 18px; }
+    .footer-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .footer-row:last-child { margin-bottom: 0; }
+    .disable-btn {
+      font-size: 13px; color: var(--cf-muted);
+      background: transparent; border: 0.5px solid var(--cf-border);
+      border-radius: 8px; padding: 7px 12px; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .disable-btn:hover { background: var(--cf-surface); color: var(--cf-text); }
+    .backend-row {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--cf-muted);
+    }
+    .backend-url { font-size: 12px; color: var(--cf-muted); font-family: var(--font-mono); }
+    .edit-btn {
+      font-size: 11px; color: var(--cf-accent);
+      background: transparent; border: none; cursor: pointer; padding: 0;
+    }
+    .protected-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--cf-accent-dim);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+    .protected-count { font-size: 22px; font-weight: 500; color: var(--cf-accent); }
+    .protected-label { font-size: 12px; color: var(--cf-muted); }
   </style>
 </head>
 <body>

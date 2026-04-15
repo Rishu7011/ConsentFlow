@@ -201,3 +201,8 @@ temp/
 # Lock files — keep package-lock.json and uv.lock but ignore others if unused
 # yarn.lock        # uncomment if not using yarn
 # pnpm-lock.yaml   # uncomment if not using pnpm
+
+# =============================================================================
+# GRAPHIFY (local caches)
+# =============================================================================
+graphify-out/cache/
