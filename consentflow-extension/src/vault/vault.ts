@@ -18,6 +18,13 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
  * Never touches disk. Cleared automatically when the tab/worker is destroyed.
  */
 const _map = new Map<string, string>();
+const _originalToDummy = new Map<string, string>();
+let _redactedCounter = 0;
+
+function _newRedactedDummy(): string {
+  _redactedCounter += 1;
+  return `⟦REDACTED_${_redactedCounter}⟧`;
+}
 
 /**
  * Return all mappings sorted longest-dummy-first to prevent partial
@@ -36,6 +43,23 @@ export const vault = {
    */
   store(dummy: string, original: string): void {
     _map.set(dummy, original);
+    // Keep a forward mapping for stable masking across the page.
+    if (!_originalToDummy.has(original)) {
+      _originalToDummy.set(original, dummy);
+    }
+  },
+
+  /**
+   * Get a stable redaction dummy for a given original PII value.
+   * Stores both directions in RAM only.
+   */
+  getOrCreateDummy(original: string): string {
+    const existing = _originalToDummy.get(original);
+    if (existing) return existing;
+    const dummy = _newRedactedDummy();
+    _originalToDummy.set(original, dummy);
+    _map.set(dummy, original);
+    return dummy;
   },
 
   /**
@@ -54,6 +78,8 @@ export const vault = {
   /** Wipe the entire in-memory map. */
   clear(): void {
     _map.clear();
+    _originalToDummy.clear();
+    _redactedCounter = 0;
   },
 
   /** Number of dummy→original pairs currently stored. */

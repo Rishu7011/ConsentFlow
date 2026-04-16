@@ -13,6 +13,7 @@ interface State {
   isOnline: boolean;
   disabledSites: string[];
   currentHostname: string;
+  historyMaskLimit: number | 'all';
 }
 
 const PII_LABELS: Record<string, { label: string; badge: string }> = {
@@ -35,6 +36,7 @@ function App() {
       isOnline: true,
       disabledSites: [],
       currentHostname: '',
+      historyMaskLimit: 'all',
     }
   );
 
@@ -46,11 +48,12 @@ function App() {
     void (async () => {
       // NOTE: Using a try-catch for chrome APIs so it doesn't fail in non-extension environment
       try {
-        const local = await chrome.storage.local.get(['currentSessionId', 'backendUrl', 'disabledSites']);
+        const local = await chrome.storage.local.get(['currentSessionId', 'backendUrl', 'disabledSites', 'historyMaskLimit']);
         const sessionId = local.currentSessionId ?? '';
         const counts = sessionId ? await metaStore.getCounts(sessionId) : {};
         const backendUrl = local.backendUrl ?? 'http://localhost:8000';
         const disabledSites = local.disabledSites ?? [];
+        const historyMaskLimit: number | 'all' = local.historyMaskLimit ?? 'all';
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const currentHostname = tab?.url ? new URL(tab.url).hostname : '';
         let isOnline = false;
@@ -63,7 +66,7 @@ function App() {
           isOnline = false;
         }
 
-        setState({ sessionId, counts, backendUrl, disabledSites, currentHostname, isOnline });
+        setState({ sessionId, counts, backendUrl, disabledSites, currentHostname, isOnline, historyMaskLimit });
         setSiteDisabled(Boolean(currentHostname && disabledSites.includes(currentHostname)));
         setUrlDraft(backendUrl);
       } catch (e) {
@@ -120,6 +123,16 @@ function App() {
     }
   }, [siteDisabled, state.currentHostname, state.disabledSites]);
 
+  const updateHistoryMaskLimit = useCallback(async (value: number | 'all') => {
+    setState({ historyMaskLimit: value });
+    await chrome.storage.local.set({ historyMaskLimit: value }).catch(() => {});
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'HISTORY_MASK_LIMIT_UPDATED', limit: value }).catch(() => {});
+    }
+  }, []);
+
   const saveBackend = async () => {
     let display = urlDraft.trim();
     if (!display.startsWith('http')) {
@@ -151,9 +164,9 @@ function App() {
       <div className="header">
         <div className="header-left">
           <div className="shield-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z" fill="#6366f1"/>
-              <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="ConsentFlow">
+              <path d="M20 3 C20 3 34 8 34 8 L34 22 C34 31 20 37 20 37 C20 37 6 31 6 22 L6 8 Z" fill="#6366f1"/>
+              <path d="M13 14 C13 11 17 11 17 14 L17 20 C17 23 23 23 23 20 L23 26 C23 29 27 29 27 26" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
             </svg>
           </div>
           <div>
@@ -217,6 +230,37 @@ function App() {
           )}
         </div>
         <button className="clear-btn" onClick={clearVault}>Clear session vault</button>
+      </div>
+
+      <div className="section">
+        <div className="section-label">Chat history masking</div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', color: 'var(--cf-muted)' }}>Mask last</span>
+          <select
+            value={state.historyMaskLimit === 'all' ? 'all' : String(state.historyMaskLimit)}
+            onChange={(e) => {
+              const v = e.target.value;
+              void updateHistoryMaskLimit(v === 'all' ? 'all' : Number(v));
+            }}
+            style={{
+              flex: 1,
+              padding: '7px 10px',
+              background: 'var(--cf-surface)',
+              border: '0.5px solid var(--cf-border)',
+              borderRadius: '8px',
+              color: 'var(--cf-text)',
+              fontSize: '13px',
+            }}
+          >
+            <option value="1">1 message (only latest)</option>
+            <option value="3">3 messages</option>
+            <option value="5">5 messages</option>
+            <option value="all">All messages</option>
+          </select>
+        </div>
+        <div style={{ marginTop: '6px', fontSize: '12px', color: 'var(--cf-muted)', lineHeight: 1.35 }}>
+          This only rewrites your on-page user bubbles to remove raw PII; it never stores PII on disk.
+        </div>
       </div>
 
       <div className="footer">
