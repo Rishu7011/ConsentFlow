@@ -100,7 +100,22 @@ npm run dev
 
 Open **http://localhost:3000**.
 
-### 5. Verify health
+### 5. Build and Load the Chrome Extension
+
+The extension intercepts PII locally before it hits the AI platform. **You MUST build it first** (Chrome cannot load raw `.ts` files from the source directory directly).
+
+```bash
+cd consentflow-extension
+npm install
+npm run build
+```
+
+Then, in Chrome:
+1. Go to `chrome://extensions/`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked** and select the `consentflow-extension/dist` folder.
+
+### 6. Verify health
 
 ```bash
 curl http://localhost:8000/health

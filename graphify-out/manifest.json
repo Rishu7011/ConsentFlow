@@ -8,8 +8,8 @@
     "hash": "8f89ea7559b0512ca9c555d1a5dcbf46"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\consentflow\\anonymizer.py": {
-    "mtime": 1777972957.6165164,
-    "hash": "865f8de1a2813a0cb915b9f9aaaf09fb"
+    "mtime": 1778009702.4246733,
+    "hash": "13c70a4bb4ef74a12e6b40614558a886"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\consentflow\\dataset_gate.py": {
     "mtime": 1777972957.624104,
@@ -120,8 +120,8 @@
     "hash": "4a29ba13d508a75c98695bd418c19b93"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\consentflow\\app\\routers\\extension.py": {
-    "mtime": 1777978421.236163,
-    "hash": "e040124ef432befc30cb5689d0da5f37"
+    "mtime": 1778013238.0104492,
+    "hash": "db029436e9a4d8c1935556986dd61601"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\consentflow\\app\\routers\\infer.py": {
     "mtime": 1777972957.6217747,
@@ -216,60 +216,60 @@
     "hash": "3cc5d4a6e4d1fe8b343b8f2f219a9c6b"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\vitest.setup.ts": {
-    "mtime": 1777977543.333045,
-    "hash": "8d652eaeff977ea3e13c5c983a58befb"
+    "mtime": 1778012705.7106457,
+    "hash": "b1cf746d07efd392d60da62966c26f1f"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\background\\serviceWorker.ts": {
-    "mtime": 1778002850.987085,
-    "hash": "8f6d5fc6cad89a02e306026aea946b8f"
+    "mtime": 1778010491.8413002,
+    "hash": "05c6ac4f4839e6695942143a58e66290"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\index.ts": {
-    "mtime": 1778003163.6222458,
-    "hash": "a0d7a0054830a9a9589463c0a7f0e62e"
+    "mtime": 1778015409.7823987,
+    "hash": "21ec4ea15608cd6a3308ab05388be60e"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\interceptor.ts": {
-    "mtime": 1777977947.2333221,
-    "hash": "4ee6b4904500bca4858476fa0ef0d587"
+    "mtime": 1778014976.996313,
+    "hash": "f69c2f883e5277bd2a834f5c53997ff9"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\reverseMapper.test.ts": {
-    "mtime": 1777978002.1598742,
-    "hash": "b55bd681b5b7ac0d10b623067337ba30"
+    "mtime": 1778014554.1375604,
+    "hash": "96ac370568cbab8f3adbc8f014578b52"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\reverseMapper.ts": {
-    "mtime": 1777977976.09446,
-    "hash": "92339bb4cc53d0a5692afba4990bf43a"
+    "mtime": 1778014548.0772915,
+    "hash": "b3411bfd095cfc37978e2e644e675484"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\platforms\\chatgpt.ts": {
-    "mtime": 1777977471.1180732,
-    "hash": "b3dea1cf801047c50ffef76aeca322fd"
+    "mtime": 1778014965.5340357,
+    "hash": "a6f254bb330e872edcaf89ecbf02d50b"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\platforms\\claude.ts": {
-    "mtime": 1777977480.7532842,
-    "hash": "d8c8d1c38c38e4358c3aad27345fff7a"
+    "mtime": 1778011166.5380719,
+    "hash": "738dc3d96ff5a5637c7d53227d1bf295"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\platforms\\index.ts": {
-    "mtime": 1777977482.1446269,
-    "hash": "dfc4c82bf5a2f6161118fb037fec8182"
+    "mtime": 1778006967.2373004,
+    "hash": "bb83ebb05d9aea2dfde0cac9634e59de"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\popup\\App.tsx": {
-    "mtime": 1778003434.0221462,
-    "hash": "0c7945bc0637fd5ff60edc5201f3def2"
+    "mtime": 1778009865.9306276,
+    "hash": "11a84e5754ebbaa10a03dcfc7ed8fd09"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\utils\\dummyGenerator.test.ts": {
-    "mtime": 1777977108.725117,
-    "hash": "4622c6d6ef9308be566162db1be542a8"
+    "mtime": 1778013260.9059675,
+    "hash": "e3adaa0b57bac4d4929c44e2efe3fd48"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\utils\\dummyGenerator.ts": {
-    "mtime": 1777978806.1958754,
-    "hash": "1a0b62d3cc25bc2628c716f552c7f6b8"
+    "mtime": 1778013288.8696568,
+    "hash": "1cef8eaf3c8245a4ebf4e668d01015f9"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\vault\\vault.test.ts": {
     "mtime": 1777977519.6465683,
     "hash": "839a7c0c953580da4de3abbc03b29e3c"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\vault\\vault.ts": {
-    "mtime": 1777977466.668568,
-    "hash": "33f220781866d251d393d23f63e6ef94"
+    "mtime": 1778009416.4492912,
+    "hash": "069f64765dfdf8e934125265fc92c1c6"
   },
   "D:\\Project\\ConsentFlow\\consentflow-frontend\\eslint.config.mjs": {
     "mtime": 1777972957.668433,
@@ -479,9 +479,9 @@
     "mtime": 1777972957.613626,
     "hash": "c6ce22d96ed12509b70fc7d2fe30223a"
   },
-  "D:\\Project\\ConsentFlow\\consentflow_extension_popup.html": {
-    "mtime": 1778001710.0832908,
-    "hash": "36e1a7d35a97a1aa1bb8fec8a90754a8"
+  "D:\\Project\\ConsentFlow\\consentflow_logos.html": {
+    "mtime": 1778007521.6249607,
+    "hash": "be23b05c6a036e84b0d03d8cb75deed8"
   },
   "D:\\Project\\ConsentFlow\\files.md": {
     "mtime": 1777972957.6742985,
@@ -512,8 +512,8 @@
     "hash": "efcb9ecfa0b2df1c186e3da3b299ca1b"
   },
   "D:\\Project\\ConsentFlow\\README.md": {
-    "mtime": 1777972957.613088,
-    "hash": "9e1caffb83277307c8fcdd63a1eb2cde"
+    "mtime": 1778010560.9819047,
+    "hash": "578201101a81b501910266d9e321a30a"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\docker-compose.yml": {
     "mtime": 1777972957.6318424,

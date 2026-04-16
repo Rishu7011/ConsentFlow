@@ -174,7 +174,7 @@ function App() {
           <div className="protected-count">{totalProtected}</div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--cf-accent)' }}>items protected</div>
-            <div className="protected-label">across {Object.keys(state.counts).length ? '2' : '0'} messages</div>
+            <div className="protected-label">this session</div>
           </div>
         </div>
         <div className="session-grid">

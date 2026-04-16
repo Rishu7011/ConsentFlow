@@ -31,10 +31,56 @@ if (!config) {
   void main();
 }
 
+// ─── Minimal in-page status indicator (debuggable UX) ─────────────────────────
+
+function ensureStatusPill(): HTMLDivElement {
+  const existing = document.getElementById('consentflow-status-pill') as HTMLDivElement | null;
+  if (existing) return existing;
+
+  const pill = document.createElement('div');
+  pill.id = 'consentflow-status-pill';
+  pill.textContent = 'ConsentFlow active';
+  pill.style.position = 'fixed';
+  pill.style.right = '12px';
+  pill.style.bottom = '12px';
+  pill.style.zIndex = '2147483647';
+  pill.style.padding = '6px 10px';
+  pill.style.borderRadius = '999px';
+  pill.style.fontSize = '12px';
+  pill.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  pill.style.color = '#fff';
+  pill.style.background = 'rgba(99, 102, 241, 0.92)';
+  pill.style.boxShadow = '0 8px 24px rgba(0,0,0,0.18)';
+  pill.style.pointerEvents = 'none';
+  pill.style.opacity = '0.85';
+
+  document.documentElement.appendChild(pill);
+  return pill;
+}
+
+function setStatusPill(text: string): void {
+  const pill = ensureStatusPill();
+  pill.textContent = text;
+}
+
+function startStatusPillWatchdog(): void {
+  // ChatGPT/SPA hydration can remove unknown DOM nodes briefly.
+  // Keep the indicator present so we can reliably debug injection.
+  const observer = new MutationObserver(() => {
+    const pill = document.getElementById('consentflow-status-pill');
+    if (!pill) {
+      ensureStatusPill();
+    }
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
   const platformConfig = getPlatformConfig()!;
+  startStatusPillWatchdog();
+  setStatusPill('ConsentFlow active');
 
   // 2. Per-page-load session ID.
   const sessionId = crypto.randomUUID();
@@ -98,13 +144,21 @@ async function attachAndBind(
   activeEnabledTypes: Set<string>,
 ): Promise<() => void> {
   try {
-    const cleanup = await attachInterceptor(platformConfig, sessionId, (count, sid) => {
-      attachReverseMapper(platformConfig, sid);
-      chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count }).catch(() => {/* offline */});
-    });
+    const cleanup = await attachInterceptor(
+      platformConfig, 
+      sessionId, 
+      (count, sid) => {
+        attachReverseMapper(platformConfig, sid);
+        setStatusPill(`Masked ${count} item(s)`);
+        setTimeout(() => setStatusPill('ConsentFlow active'), 2000);
+        chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count }).catch(() => {/* offline */});
+      },
+      activeEnabledTypes
+    );
     return cleanup;
   } catch (err) {
     console.warn('[ConsentFlow] Failed to attach interceptor:', err);
+    setStatusPill('ConsentFlow error (see console)');
     return () => { /* no-op */ };
   }
 }

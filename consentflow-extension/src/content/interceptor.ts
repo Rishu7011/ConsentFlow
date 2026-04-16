@@ -27,8 +27,10 @@ export async function attachInterceptor(
   config: PlatformConfig,
   providedSessionId: string,
   onMasked: (count: number, sessionId: string) => void,
+  enabledTypes: Set<string> = new Set(SUPPORTED_TYPES),
 ): Promise<() => void> {
   sessionId = providedSessionId;
+  activeEnabledTypes = enabledTypes;
   const cleanupFns: Array<() => void> = [];
   
   let isIntercepting = false;
@@ -40,11 +42,28 @@ export async function attachInterceptor(
     const isClick = e.type === 'click' || 
                     e.type === 'mousedown' || e.type === 'mouseup' || 
                     e.type === 'pointerdown' || e.type === 'pointerup';
+    const isSubmit = e.type === 'submit';
     const isEnter = (e.type === 'keydown' || e.type === 'keyup' || e.type === 'keypress') && 
                     (e as KeyboardEvent).key === 'Enter' && 
                     !(e as KeyboardEvent).shiftKey;
     
-    if (!isClick && !isEnter) return;
+    if (!isClick && !isEnter && !isSubmit) return;
+
+    // If we are already busy masking from a previous event, aggressively block
+    // all subsequent interaction events so ChatGPT doesn't see them!
+    if (isIntercepting) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return;
+    }
+
+    // Only START an interception on the initial "down" events.
+    // This prevents double-triggering when the user releases the mouse/key
+    // after the backend has already responded.
+    const isDownEvent = e.type === 'mousedown' || e.type === 'pointerdown' || e.type === 'keydown';
+    // For submit events we always intercept (it's the final send pathway).
+    if (!isDownEvent && e.type !== 'click' && !isSubmit) return;
 
     const inputEl = document.querySelector<HTMLElement>(config.inputSelector);
     if (!inputEl) return;
@@ -54,21 +73,19 @@ export async function attachInterceptor(
       if (!target.closest(config.sendButton)) return;
     } else if (isEnter) {
       if (!inputEl.contains(e.target as Node) && e.target !== inputEl) return;
-    }
-
-    // If we are already busy masking from a previous event (e.g. we caught keydown
-    // and this is the subsequent keyup), aggressively block it so ChatGPT doesn't get it!
-    if (isIntercepting) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return;
+    } else if (isSubmit) {
+      // If there's no meaningful input, don't interfere with the form submit.
+      // We rely on the input text check below.
     }
 
     const text = config.getInputText(inputEl);
     if (!text.trim()) return;
 
-    const { mappings } = detectAndReplace(text, 'placeholder', [...activeEnabledTypes]);
+    const { anonymized, mappings } = detectAndReplace(
+      text,
+      'placeholder',
+      [...activeEnabledTypes],
+    );
     if (mappings.length === 0) return;
 
     // We found PII! Stop this event from reaching ChatGPT synchronously!
@@ -80,7 +97,7 @@ export async function attachInterceptor(
     
     const triggerEvent = e.type;
 
-    void interceptClick(config, onMasked, text, mappings, inputEl).then(() => {
+    void interceptClick(config, onMasked, anonymized, mappings, inputEl).then(() => {
       setTimeout(() => {
         const btn = document.querySelector<HTMLElement>(config.sendButton);
         if (btn) {
@@ -114,6 +131,7 @@ export async function attachInterceptor(
   window.addEventListener('keydown', handleEvent, { capture: true });
   window.addEventListener('keyup', handleEvent, { capture: true });
   window.addEventListener('keypress', handleEvent, { capture: true });
+  window.addEventListener('submit', handleEvent, { capture: true });
   cleanupFns.push(() => {
     window.removeEventListener('click', handleEvent, { capture: true });
     window.removeEventListener('mousedown', handleEvent, { capture: true });
@@ -123,6 +141,7 @@ export async function attachInterceptor(
     window.removeEventListener('keydown', handleEvent, { capture: true });
     window.removeEventListener('keyup', handleEvent, { capture: true });
     window.removeEventListener('keypress', handleEvent, { capture: true });
+    window.removeEventListener('submit', handleEvent, { capture: true });
   });
 
   const handleMessage = (
@@ -152,7 +171,7 @@ export async function attachInterceptor(
 async function interceptClick(
   config: PlatformConfig,
   onMasked: (count: number, sid: string) => void,
-  text: string,
+  anonymizedWithPlaceholders: string,
   mappings: ReturnType<typeof detectAndReplace>['mappings'],
   inputEl: HTMLElement,
 ): Promise<void> {
@@ -170,17 +189,6 @@ async function interceptClick(
     ]) as { ok: boolean; dummies?: Record<string, string>; error?: string } | null;
 
     if (response?.ok && response.dummies) {
-      const { anonymized } = detectAndReplace(text, 'placeholder', [...activeEnabledTypes]);
-      let finalText = anonymized;
-      for (const mapping of mappings) {
-        const dummy = response.dummies[mapping.placeholder];
-        if (dummy) {
-          vault.store(dummy, mapping.original);
-          finalText = finalText.split(mapping.placeholder).join(dummy);
-        }
-      }
-      config.setInputText(inputEl, finalText);
-
       const typeCounts: Record<string, number> = {};
       for (const m of mappings) {
         typeCounts[m.type] = (typeCounts[m.type] ?? 0) + 1;
@@ -190,6 +198,21 @@ async function interceptClick(
       }
 
       onMasked(mappings.length, sid);
+
+      let finalText = anonymizedWithPlaceholders;
+      for (const mapping of mappings) {
+        const dummy = response.dummies[mapping.placeholder];
+        if (dummy) {
+          vault.store(dummy, mapping.original);
+          finalText = finalText.split(mapping.placeholder).join(dummy);
+        }
+      }
+      
+      try {
+        config.setInputText(inputEl, finalText);
+      } catch (err) {
+        console.error('[ConsentFlow] setInputText error:', err);
+      }
     } else {
       await applyOfflineFallback(config, inputEl, text, sid, onMasked);
     }

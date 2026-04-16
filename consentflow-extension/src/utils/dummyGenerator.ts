@@ -28,6 +28,28 @@ export interface DetectAndReplaceResult {
   mappings: PiiMapping[];
 }
 
+// ─── Redaction strategy ───────────────────────────────────────────────────────
+
+/**
+ * Types where we intentionally use a non-semantic dummy token.
+ *
+ * Rationale: realistic-looking dummies (e.g. 9000000000) still reveal the *kind*
+ * of data shared (phone number), which can cause the model to describe it.
+ */
+const NON_SEMANTIC_DUMMY_TYPES = new Set<SupportedType>([
+  'PERSON',
+  'PHONE_NUMBER',
+  'EMAIL_ADDRESS',
+  'IN_AADHAAR',
+  'IN_PAN',
+  'UPI_ID',
+]);
+
+function makeRedactedDummy(counter: number): string {
+  // Unique per match, but does not encode entity type.
+  return `⟦REDACTED_${counter}⟧`;
+}
+
 // ─── Supported types (order matters — applied in this exact sequence) ────────
 
 export const SUPPORTED_TYPES = [
@@ -74,7 +96,8 @@ const PATTERNS: PatternDef[] = [
   },
   {
     type: 'PHONE_NUMBER',
-    regex: () => /\b[6-9]\d{9}\b/g,
+    // Indian mobile numbers; supports optional +91 and spaced/dashed formats.
+    regex: () => /\b(?:\+91[\-\s]?)?[6-9]\d{4}[\s\-]?\d{5}\b/g,
     dummy: '9000000000',
   },
   {
@@ -116,6 +139,60 @@ export function detectAndReplace(
 
   const rawMatches: RawMatch[] = [];
 
+  // Phrase-level redaction: remove semantic cues like "my phone number is" so the model
+  // cannot describe the category of PII even if the value is masked.
+  if (activeTypes.has('PERSON')) {
+    const namePhrases = [
+      /\bmy\s+name\s+is\s+[A-Z][a-z]{1,30}\b/gi,
+      /\b(?:i\s+am|i'?m|this\s+is)\s+[A-Z][a-z]{1,30}\b/g,
+    ];
+    for (const re of namePhrases) {
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text)) !== null) {
+        rawMatches.push({
+          start: m.index,
+          end: m.index + m[0].length,
+          original: m[0],
+          type: 'PERSON',
+          dummy: 'Alex Smith',
+        });
+      }
+    }
+  }
+
+  if (activeTypes.has('PHONE_NUMBER')) {
+    const phonePhrase =
+      /\b(?:my\s+)?(?:phone|mobile)\s*(?:number\s*)?(?:is|:)\s*(?:\+91[\-\s]?)?[6-9]\d{4}[\s\-]?\d{5}\b/gi;
+    let m: RegExpExecArray | null;
+    while ((m = phonePhrase.exec(text)) !== null) {
+      rawMatches.push({
+        start: m.index,
+        end: m.index + m[0].length,
+        original: m[0],
+        type: 'PHONE_NUMBER',
+        dummy: '9000000000',
+      });
+    }
+  }
+
+  // Heuristic PERSON detection for single names in common self-identification phrases.
+  // This intentionally extracts ONLY the name token, not the whole phrase.
+  if (activeTypes.has('PERSON')) {
+    const singleName = /\b(?:my\s+name\s+is|i\s+am|i'?m|this\s+is)\s+([A-Z][a-z]{1,30})\b/g;
+    let m: RegExpExecArray | null;
+    while ((m = singleName.exec(text)) !== null) {
+      const name = m[1];
+      const start = (m.index ?? 0) + m[0].lastIndexOf(name);
+      rawMatches.push({
+        start,
+        end: start + name.length,
+        original: name,
+        type: 'PERSON',
+        dummy: 'Alex Smith',
+      });
+    }
+  }
+
   for (const pattern of PATTERNS) {
     if (!activeTypes.has(pattern.type)) continue;
 
@@ -134,7 +211,7 @@ export function detectAndReplace(
   }
 
   // Sort by start position
-  rawMatches.sort((a, b) => a.start - b.start);
+  rawMatches.sort((a, b) => (a.start - b.start) || (b.end - a.end));
 
   // Remove overlapping matches (keep the first / leftmost)
   const nonOverlapping: RawMatch[] = [];
@@ -154,18 +231,22 @@ export function detectAndReplace(
   for (const match of nonOverlapping) {
     counter++;
     const placeholder = `[${match.type}_${counter}]`;
+    const dummyValue =
+      mode === 'direct'
+        ? (NON_SEMANTIC_DUMMY_TYPES.has(match.type) ? makeRedactedDummy(counter) : match.dummy)
+        : '';
 
     mappings.push({
       original: match.original,
       placeholder,
-      dummy: mode === 'direct' ? match.dummy : '',
+      dummy: dummyValue,
       type: match.type,
     });
 
     // Append the unchanged text before this match
     result += text.slice(textCursor, match.start);
     // Append either the placeholder token or the dummy value
-    result += mode === 'placeholder' ? placeholder : match.dummy;
+    result += mode === 'placeholder' ? placeholder : dummyValue;
     textCursor = match.end;
   }
 

@@ -33,13 +33,13 @@ export function attachReverseMapper(
   const contentObserver = new MutationObserver(mutations => {
     for (const mutation of mutations) {
       if (mutation.type === 'characterData') {
-        if (!isAiOutput(mutation.target, config)) {
+        if (!isProtectedUi(mutation.target, config)) {
           replaceInNode(mutation.target);
         }
       } else if (mutation.type === 'childList') {
         mutation.addedNodes.forEach(node => {
           walkTextNodes(node, textNode => {
-            if (!isAiOutput(textNode, config)) {
+            if (!isProtectedUi(textNode, config)) {
               replaceInNode(textNode);
             }
           });
@@ -56,7 +56,7 @@ export function attachReverseMapper(
   
   // Do an initial pass on the document body to catch anything already rendered
   walkTextNodes(document.body, textNode => {
-    if (!isAiOutput(textNode, config)) {
+    if (!isProtectedUi(textNode, config)) {
       replaceInNode(textNode);
     }
   });
@@ -69,14 +69,37 @@ export function attachReverseMapper(
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
 /**
- * Checks if a node is inside the AI's response container (output).
- * If true, we DO NOT reverse-map it, so it always shows the dummy text.
+ * Checks whether a node is inside the chat transcript UI (user or assistant).
+ *
+ * Security rationale:
+ * - Re-injecting real PII into the on-page conversation DOM can leak it back into
+ *   the model on later turns (some clients derive context from rendered content).
+ * - Re-injecting real PII into the input box can also leak (it will be sent).
+ * - Therefore we never unmask inside any chat transcript container or input UI.
  */
-function isAiOutput(node: Node, config: PlatformConfig): boolean {
+function isProtectedUi(node: Node, config: PlatformConfig): boolean {
   if (node.nodeType === Node.TEXT_NODE && !node.parentElement) return false;
   const el = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
   if (!el) return false;
-  return !!el.closest(config.responseContainer);
+
+  // Primary: platform-provided selector (usually assistant container).
+  if (config.responseContainer && el.closest(config.responseContainer)) return true;
+
+  // Robust: treat ANY message bubble as transcript (assistant OR user).
+  // This covers ChatGPT and any platform with the same attribute.
+  if (el.closest('[data-message-author-role]')) return true;
+
+  // Never unmask inside the input element (contenteditable text nodes live here).
+  if (config.inputSelector && el.closest(config.inputSelector)) return true;
+
+  // Extra safeguard: walk ancestors and check the attribute explicitly.
+  let cur: HTMLElement | null = el;
+  while (cur) {
+    if (cur.hasAttribute('data-message-author-role')) return true;
+    cur = cur.parentElement;
+  }
+
+  return false;
 }
 
 // ─── Node helpers ─────────────────────────────────────────────────────────────

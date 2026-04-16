@@ -139,7 +139,7 @@ async function handleMessage(message: IncomingMessage): Promise<object> {
       const backendUrl = await getBackendUrl();
 
       try {
-        const res = await fetch(`${backendUrl}/consent`, {
+        const res = await fetch(`${backendUrl}/api/v1/consent`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -67,71 +67,39 @@ export const vault = {
   },
 };
 
-// ─── Part 2 — IndexedDB metadata store ──────────────────────────────────────
-
-export interface VaultMetaEntry {
-  sessionId: string;
-  /** e.g. { PERSON: 2, PHONE_NUMBER: 1 } */
-  counts: Record<string, number>;
-  lastUpdatedAt: number;
-}
-
-interface ConsentFlowMetaDB extends DBSchema {
-  sessions: {
-    key: string;
-    value: VaultMetaEntry;
-  };
-}
-
-let _dbPromise: Promise<IDBPDatabase<ConsentFlowMetaDB>> | null = null;
-
-function getDb(): Promise<IDBPDatabase<ConsentFlowMetaDB>> {
-  if (!_dbPromise) {
-    _dbPromise = openDB<ConsentFlowMetaDB>('consentflow-meta', 1, {
-      upgrade(db) {
-        db.createObjectStore('sessions', { keyPath: 'sessionId' });
-      },
-    });
-  }
-  return _dbPromise;
-}
+// ─── Part 2 — Metadata store (chrome.storage.local) ─────────────────────────
 
 export const metaStore = {
   /**
    * Merge-upsert: add `increment` to the existing count for `type` in the
-   * given session. Creates the session entry if it doesn't exist yet.
+   * given session.
    */
   async upsertCounts(
     sessionId: string,
     type: string,
     increment: number,
   ): Promise<void> {
-    const db = await getDb();
-    const tx = db.transaction('sessions', 'readwrite');
-    const store = tx.objectStore('sessions');
-
-    const existing = await store.get(sessionId);
-    const counts = existing?.counts ?? {};
-    counts[type] = (counts[type] ?? 0) + increment;
-
-    await store.put({ sessionId, counts, lastUpdatedAt: Date.now() });
-    await tx.done;
+    const key = `metrics_${sessionId}`;
+    const result = await chrome.storage.local.get([key]);
+    const counts = result[key] || {};
+    counts[type] = (counts[type] || 0) + increment;
+    await chrome.storage.local.set({ [key]: counts });
   },
 
   /**
    * Return the counts record for `sessionId`, or {} if not found.
    */
   async getCounts(sessionId: string): Promise<Record<string, number>> {
-    const db = await getDb();
-    const entry = await db.get('sessions', sessionId);
-    return entry?.counts ?? {};
+    const key = `metrics_${sessionId}`;
+    const result = await chrome.storage.local.get([key]);
+    return result[key] || {};
   },
 
   /**
    * Delete the session entry entirely.
    */
   async clearSession(sessionId: string): Promise<void> {
-    const db = await getDb();
-    await db.delete('sessions', sessionId);
+    const key = `metrics_${sessionId}`;
+    await chrome.storage.local.remove([key]);
   },
 };

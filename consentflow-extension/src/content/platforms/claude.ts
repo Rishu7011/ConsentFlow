@@ -8,7 +8,7 @@ import type { PlatformConfig } from './index';
 
 export const CLAUDE: PlatformConfig = {
   inputSelector: '[contenteditable="true"].ProseMirror',
-  sendButton: '[aria-label="Send message"]',
+  sendButton: 'button[aria-label="Send Message"], button[aria-label="Send message"]',
   responseContainer: '[data-is-streaming]',
   streamingClass: 'streaming',
   inputType: 'contenteditable',
@@ -29,21 +29,30 @@ export function setInputText(el: HTMLElement, text: string): void {
   el.focus();
   const selection = window.getSelection();
   const range = document.createRange();
-  range.selectNodeContents(el);
-  selection?.removeAllRanges();
-  selection?.addRange(range);
-  try {
-    document.execCommand('insertText', false, text);
-  } catch (e) {
-    // Ignore
+  
+  // Select the inner paragraph if it exists
+  const innerP = el.querySelector('p');
+  range.selectNodeContents(innerP || el);
+  
+  if (selection) {
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
-  const dataTransfer = new DataTransfer();
-  dataTransfer.setData('text/plain', text);
-  const pasteEvent = new ClipboardEvent('paste', {
-    clipboardData: dataTransfer,
-    bubbles: true,
-    cancelable: true,
-  });
-  el.dispatchEvent(pasteEvent);
+  
+  try {
+    document.execCommand('delete', false, null);
+    document.execCommand('insertText', false, text);
+  } catch (e) {}
+  
+  try {
+    const dataTransfer = new DataTransfer();
+    dataTransfer.setData('text/plain', text);
+    const pasteEvent = new ClipboardEvent('paste', {
+      clipboardData: dataTransfer,
+      bubbles: true,
+      cancelable: true,
+    });
+    el.dispatchEvent(pasteEvent);
+  } catch (e) {}
   el.dispatchEvent(new Event('input', { bubbles: true }));
 }

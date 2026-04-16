@@ -162,6 +162,14 @@ anonymizer = AnonymizerEngine()
 # ── Full entity list to scan for ──────────────────────────────────────────────
 # Pass this to analyzer.analyze() as the entities parameter.
 
+_PERSON_NAMES = [
+    "Fake Person A",
+    "Fake Person B",
+    "Dummy User X",
+    "Test Name Y",
+    "Masked User Z",
+]
+
 ALL_PII_ENTITIES: list[str] = [
     # Identity
     "PERSON",

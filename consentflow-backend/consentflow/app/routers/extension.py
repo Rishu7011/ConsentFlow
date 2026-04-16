@@ -76,9 +76,17 @@ def _generate_dummy(entity_ref: str) -> str:
     The dummy is safe to pass back to the content script — it never contains
     real PII.
     """
-    # Extract type: "[PERSON_1]" → "PERSON"
-    match = re.match(r"\[([A-Z_]+)_\d+\]", entity_ref)
+    # Extract type + counter: "[PERSON_1]" → ("PERSON", "1")
+    match = re.match(r"\[([A-Z_]+)_(\d+)\]", entity_ref)
     entity_type = match.group(1) if match else ""
+    counter = match.group(2) if match else ""
+
+    # Non-semantic redactions for all known types so the model cannot infer
+    # what kind of PII was shared (e.g. a 10-digit number still looks like a phone).
+    #
+    # Must remain unique-per-placeholder to avoid collisions in the content-script vault.
+    if counter:
+        return f"⟦REDACTED_{counter}⟧"
 
     if entity_type == "PERSON":
         return random.choice(_PERSON_NAMES)
@@ -108,7 +116,7 @@ def _generate_dummy(entity_ref: str) -> str:
         return f"user{random.randint(1000, 9999)}@okaxis"
 
     # Unknown type — return a safe sentinel.
-    return f"DUMMY_{entity_ref}"
+    return "⟦REDACTED⟧"
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────

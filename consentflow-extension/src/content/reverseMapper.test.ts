@@ -83,7 +83,7 @@ describe('replaceInNode', () => {
 // ─── attachReverseMapper ──────────────────────────────────────────────────────
 
 describe('attachReverseMapper', () => {
-  it('replaces dummy token in a text node inside the response container', async () => {
+  it('does NOT replace dummy token inside the response container (assistant output stays masked)', async () => {
     vault.store('Alex Smith', 'Rishu Nigam');
 
     // Create the container and attach before calling attachReverseMapper
@@ -101,12 +101,55 @@ describe('attachReverseMapper', () => {
     // Allow mutation observer microtasks to flush.
     await new Promise(r => setTimeout(r, 0));
 
-    expect(textNode.textContent).toBe('Hello Rishu Nigam');
+    // Assistant output must remain masked (dummy stays visible).
+    expect(textNode.textContent).toBe('Hello Alex Smith');
 
     cleanup();
   });
 
-  it('fires a final pass after streaming class is removed from container', async () => {
+  it('does NOT replace dummy token inside a user message bubble (transcript stays masked)', async () => {
+    vault.store('⟦REDACTED_1⟧', '9988776655');
+
+    const userBubble = document.createElement('div');
+    userBubble.setAttribute('data-message-author-role', 'user');
+    document.body.appendChild(userBubble);
+
+    const config = makeConfig('.response-container', 'streaming');
+    const cleanup = attachReverseMapper(config, 'session-3');
+
+    const textNode = document.createTextNode('My number is ⟦REDACTED_1⟧');
+    userBubble.appendChild(textNode);
+
+    await new Promise(r => setTimeout(r, 0));
+
+    // Must remain masked inside transcript.
+    expect(textNode.textContent).toBe('My number is ⟦REDACTED_1⟧');
+
+    cleanup();
+  });
+
+  it('does NOT replace dummy token inside the input element (prevents re-leak on send)', async () => {
+    vault.store('⟦REDACTED_1⟧', '9988776655');
+
+    const input = document.createElement('div');
+    input.id = 'input';
+    input.setAttribute('contenteditable', 'true');
+    document.body.appendChild(input);
+
+    const config = makeConfig('.response-container', 'streaming');
+    const cleanup = attachReverseMapper(config, 'session-4');
+
+    const textNode = document.createTextNode('My number is ⟦REDACTED_1⟧');
+    input.appendChild(textNode);
+
+    await new Promise(r => setTimeout(r, 0));
+
+    expect(textNode.textContent).toBe('My number is ⟦REDACTED_1⟧');
+
+    cleanup();
+  });
+
+  it('does NOT unmask after streaming class is removed (assistant output stays masked)', async () => {
     vault.store('Jordan Lee', 'Test User');
 
     const container = document.createElement('div');
@@ -127,7 +170,7 @@ describe('attachReverseMapper', () => {
 
     await new Promise(r => setTimeout(r, 0));
 
-    expect(textNode.textContent).toBe('Test User said hello');
+    expect(textNode.textContent).toBe('Jordan Lee said hello');
 
     cleanup();
   });

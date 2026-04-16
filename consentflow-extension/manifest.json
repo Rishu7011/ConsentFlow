@@ -3,7 +3,7 @@
   "name": "ConsentFlow Privacy Shield",
   "version": "1.0.0",
   "description": "Masks your PII before it reaches any AI chatbot.",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
   "host_permissions": [
     "https://chat.openai.com/*",
     "https://chatgpt.com/*",

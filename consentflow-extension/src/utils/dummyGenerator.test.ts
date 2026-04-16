@@ -54,14 +54,15 @@ describe('direct mode', () => {
     const { anonymized } = detectAndReplace(text, 'direct');
 
     expect(anonymized).not.toContain('9876543210');
-    expect(anonymized).toContain('9000000000');
+    // Non-semantic redaction token (unique per match)
+    expect(anonymized).toContain('⟦REDACTED_1⟧');
   });
 
   it('dummy field is populated in direct mode', () => {
     const text = 'PAN: ABCDE1234F';
     const { mappings } = detectAndReplace(text, 'direct');
 
-    expect(mappings[0].dummy).toBe('AAAAA0000A');
+    expect(mappings[0].dummy).toBe('⟦REDACTED_1⟧');
     expect(mappings[0].original).toBe('ABCDE1234F');
   });
 
@@ -69,7 +70,7 @@ describe('direct mode', () => {
     const text = 'Aadhaar 1234 5678 9012 here';
     const { anonymized } = detectAndReplace(text, 'direct');
 
-    expect(anonymized).toContain('XXXX XXXX XXXX');
+    expect(anonymized).toContain('⟦REDACTED_1⟧');
     expect(anonymized).not.toContain('[IN_AADHAAR');
   });
 });
@@ -178,5 +179,18 @@ describe('edge cases', () => {
     expect(anonymized).not.toContain('9876543210');
     expect(anonymized).not.toContain('rohan@example.com');
     expect(anonymized).not.toContain('ABCDE1234F');
+  });
+
+  it('detects single-name PERSON in "my name is ..." phrases', () => {
+    const text = 'Hello! My name is Rishabh and my phone number is 9988776655.';
+    const { anonymized, mappings } = detectAndReplace(text, 'placeholder');
+
+    expect(anonymized).not.toContain('Rishabh');
+    expect(anonymized).not.toContain('9988776655');
+
+    const person = mappings.find(m => m.type === 'PERSON');
+    const phone = mappings.find(m => m.type === 'PHONE_NUMBER');
+    expect(person).toBeTruthy();
+    expect(phone).toBeTruthy();
   });
 });
