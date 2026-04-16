@@ -1,7 +1,7 @@
 # Graph Report - ConsentFlow  (2026-05-06)
 
 ## Corpus Check
-- 122 files · ~71,484 words
+- 122 files · ~70,823 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ff47732d`
+- Built from commit: `98f9a02e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
