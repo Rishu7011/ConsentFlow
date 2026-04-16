@@ -52,7 +52,7 @@ export const CLAUDE_CONFIG: PlatformConfig = {
  */
 export function detectPlatform(): 'chatgpt' | 'claude' | null {
   const host = location.hostname;
-  if (host.includes('chat.openai.com')) return 'chatgpt';
+  if (host.includes('chat.openai.com') || host.includes('chatgpt.com')) return 'chatgpt';
   if (host.includes('claude.ai')) return 'claude';
   return null;
 }

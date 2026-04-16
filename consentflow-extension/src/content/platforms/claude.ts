@@ -26,6 +26,24 @@ export function getInputText(el: HTMLElement): string {
  * so the page's framework (ProseMirror) can react to the change.
  */
 export function setInputText(el: HTMLElement, text: string): void {
-  el.innerText = text;
+  el.focus();
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+  try {
+    document.execCommand('insertText', false, text);
+  } catch (e) {
+    // Ignore
+  }
+  const dataTransfer = new DataTransfer();
+  dataTransfer.setData('text/plain', text);
+  const pasteEvent = new ClipboardEvent('paste', {
+    clipboardData: dataTransfer,
+    bubbles: true,
+    cancelable: true,
+  });
+  el.dispatchEvent(pasteEvent);
   el.dispatchEvent(new Event('input', { bubbles: true }));
 }

@@ -30,77 +30,53 @@ export function attachReverseMapper(
   config: PlatformConfig,
   _sessionId: string,
 ): () => void {
-  const observers: MutationObserver[] = [];
-
-  // ── Step 1: wait for the response container to appear ────────────────────
-
-  const bodyObserver = new MutationObserver(() => {
-    const container = document.querySelector<HTMLElement>(config.responseContainer);
-    if (!container) return;
-
-    // Found the container — stop watching document.body.
-    bodyObserver.disconnect();
-
-    // ── Step 2: observe the container for content mutations ────────────────
-    attachContainerObserver(container, config, observers);
+  const contentObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'characterData') {
+        if (!isAiOutput(mutation.target, config)) {
+          replaceInNode(mutation.target);
+        }
+      } else if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(node => {
+          walkTextNodes(node, textNode => {
+            if (!isAiOutput(textNode, config)) {
+              replaceInNode(textNode);
+            }
+          });
+        });
+      }
+    }
   });
 
-  // Also check immediately in case the container is already there.
-  const existing = document.querySelector<HTMLElement>(config.responseContainer);
-  if (existing) {
-    attachContainerObserver(existing, config, observers);
-  } else {
-    bodyObserver.observe(document.body, { childList: true, subtree: true });
-    observers.push(bodyObserver);
-  }
+  contentObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  
+  // Do an initial pass on the document body to catch anything already rendered
+  walkTextNodes(document.body, textNode => {
+    if (!isAiOutput(textNode, config)) {
+      replaceInNode(textNode);
+    }
+  });
 
   return () => {
-    observers.forEach(o => o.disconnect());
-    observers.length = 0;
+    contentObserver.disconnect();
   };
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
 /**
- * Attach mutation observers to a discovered response container.
- * Pushed into the shared `observers` array so the cleanup function can
- * disconnect them all.
+ * Checks if a node is inside the AI's response container (output).
+ * If true, we DO NOT reverse-map it, so it always shows the dummy text.
  */
-function attachContainerObserver(
-  container: HTMLElement,
-  config: PlatformConfig,
-  observers: MutationObserver[],
-): void {
-  // ── Step 3: content observer (characterData + childList) ──────────────────
-  const contentObserver = new MutationObserver(mutations => {
-    for (const mutation of mutations) {
-      if (mutation.type === 'characterData') {
-        replaceInNode(mutation.target);
-      } else if (mutation.type === 'childList') {
-        mutation.addedNodes.forEach(node => walkTextNodes(node, replaceInNode));
-      }
-    }
-  });
-
-  contentObserver.observe(container, {
-    childList: true,
-    subtree: true,
-    characterData: true,
-  });
-  observers.push(contentObserver);
-
-  // ── Step 5: attribute observer — fire a final pass when streaming ends ────
-  const attrObserver = new MutationObserver(() => {
-    if (!container.classList.contains(config.streamingClass)) {
-      // Streaming has ended — do one complete final pass.
-      walkTextNodes(container, replaceInNode);
-      attrObserver.disconnect();
-    }
-  });
-
-  attrObserver.observe(container, { attributes: true, attributeFilter: ['class'] });
-  observers.push(attrObserver);
+function isAiOutput(node: Node, config: PlatformConfig): boolean {
+  if (node.nodeType === Node.TEXT_NODE && !node.parentElement) return false;
+  const el = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
+  if (!el) return false;
+  return !!el.closest(config.responseContainer);
 }
 
 // ─── Node helpers ─────────────────────────────────────────────────────────────

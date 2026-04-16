@@ -46,10 +46,9 @@ function App() {
     void (async () => {
       // NOTE: Using a try-catch for chrome APIs so it doesn't fail in non-extension environment
       try {
-        const sessionResult = await chrome.storage.session.get(['currentSessionId']);
-        const sessionId = sessionResult.currentSessionId ?? '';
+        const local = await chrome.storage.local.get(['currentSessionId', 'backendUrl', 'disabledSites']);
+        const sessionId = local.currentSessionId ?? '';
         const counts = sessionId ? await metaStore.getCounts(sessionId) : {};
-        const local = await chrome.storage.local.get(['backendUrl', 'disabledSites']);
         const backendUrl = local.backendUrl ?? 'http://localhost:8000';
         const disabledSites = local.disabledSites ?? [];
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

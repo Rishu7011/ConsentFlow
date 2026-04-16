@@ -1,0 +1,105 @@
+
+<style>
+  body { background: transparent; font-family: var(--font-sans, system-ui, sans-serif); }
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 24px 0;
+  }
+  .logo-card {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 32px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-name {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.04em;
+  }
+  .dark-card {
+    background: #0f172a;
+    border-color: rgba(255,255,255,0.08);
+  }
+</style>
+
+<h2 class="sr-only">Three ConsentFlow logo variants: wordmark, icon-only, and dark background</h2>
+
+<div class="logo-grid">
+
+  <div class="logo-card">
+    <svg width="160" height="160" viewBox="0 0 160 160" role="img">
+      <title>ConsentFlow wordmark logo</title>
+      <desc>Shield shape with stylised CF letterform and wordmark below</desc>
+      <polygon points="80,14 128,34 128,82 80,126 32,82 32,34" fill="#6366f1" rx="4"/>
+      <polygon points="80,14 128,34 128,82 80,126 32,82 32,34" fill="none" stroke="#4f46e5" stroke-width="2"/>
+      <path d="M62 60 L62 78 Q62 84 68 84 L80 84" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M98 100 L98 82 Q98 76 92 76 L80 76" fill="none" stroke="#a5b4fc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="62" cy="60" r="5" fill="#fff"/>
+      <circle cx="98" cy="100" r="5" fill="#a5b4fc"/>
+      <text x="80" y="148" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="var(--color-text-primary)" letter-spacing="0.08em">CONSENTFLOW</text>
+    </svg>
+    <span class="logo-name">Wordmark</span>
+  </div>
+
+  <div class="logo-card">
+    <svg width="160" height="160" viewBox="0 0 160 160" role="img">
+      <title>ConsentFlow icon — shield with flowing path</title>
+      <desc>Rounded shield with a continuous flowing S-curve representing data moving through consent</desc>
+      <path d="M80 16 C80 16 124 30 124 30 L124 82 C124 108 80 132 80 132 C80 132 36 108 36 82 L36 30 Z" fill="#6366f1"/>
+      <path d="M80 16 C80 16 124 30 124 30 L124 82 C124 108 80 132 80 132 C80 132 36 108 36 82 L36 30 Z" fill="none" stroke="#818cf8" stroke-width="1.5"/>
+      <path d="M58 58 C58 50 72 50 72 58 L72 76 C72 84 88 84 88 76 L88 94 C88 102 102 102 102 94" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="58" cy="58" r="6" fill="#c7d2fe"/>
+      <circle cx="102" cy="94" r="6" fill="#c7d2fe"/>
+    </svg>
+    <span class="logo-name">Icon only</span>
+  </div>
+
+  <div class="logo-card dark-card">
+    <svg width="160" height="160" viewBox="0 0 160 160" role="img">
+      <title>ConsentFlow logo on dark background</title>
+      <desc>Shield on dark surface with indigo fill and light text wordmark</desc>
+      <path d="M80 16 C80 16 124 30 124 30 L124 82 C124 108 80 132 80 132 C80 132 36 108 36 82 L36 30 Z" fill="#312e81"/>
+      <path d="M80 16 C80 16 124 30 124 30 L124 82 C124 108 80 132 80 132 C80 132 36 108 36 82 L36 30 Z" fill="none" stroke="#6366f1" stroke-width="2"/>
+      <path d="M58 58 C58 50 72 50 72 58 L72 76 C72 84 88 84 88 76 L88 94 C88 102 102 102 102 94" fill="none" stroke="#a5b4fc" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="58" cy="58" r="6" fill="#6366f1"/>
+      <circle cx="102" cy="94" r="6" fill="#6366f1"/>
+      <text x="80" y="148" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#e0e7ff" letter-spacing="0.08em">CONSENTFLOW</text>
+    </svg>
+    <span class="logo-name" style="color: #64748b;">Dark variant</span>
+  </div>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 0;">
+
+  <div class="logo-card" style="flex-direction: row; gap: 16px; padding: 20px 24px; justify-content: flex-start; align-items: center;">
+    <svg width="40" height="40" viewBox="0 0 40 40" role="img">
+      <title>ConsentFlow small icon</title>
+      <path d="M20 3 C20 3 34 8 34 8 L34 22 C34 31 20 37 20 37 C20 37 6 31 6 22 L6 8 Z" fill="#6366f1"/>
+      <path d="M13 14 C13 11 17 11 17 14 L17 20 C17 23 23 23 23 20 L23 26 C23 29 27 29 27 26" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div style="font-size: 16px; font-weight: 500; color: var(--color-text-primary); letter-spacing: -0.01em;">ConsentFlow</div>
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 2px;">Privacy Shield</div>
+    </div>
+  </div>
+
+  <div class="logo-card" style="flex-direction: row; gap: 14px; padding: 20px 24px; background: #f8f7ff; justify-content: flex-start; align-items: center; border-color: #e0e7ff;">
+    <svg width="40" height="40" viewBox="0 0 40 40" role="img">
+      <title>ConsentFlow small icon on light tint</title>
+      <path d="M20 3 C20 3 34 8 34 8 L34 22 C34 31 20 37 20 37 C20 37 6 31 6 22 L6 8 Z" fill="#6366f1"/>
+      <path d="M13 14 C13 11 17 11 17 14 L17 20 C17 23 23 23 23 20 L23 26 C23 29 27 29 27 26" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div style="font-size: 16px; font-weight: 500; color: #312e81; letter-spacing: -0.01em;">ConsentFlow</div>
+      <div style="font-size: 12px; color: #6366f1; margin-top: 2px;">Privacy Shield</div>
+    </div>
+  </div>
+
+</div>

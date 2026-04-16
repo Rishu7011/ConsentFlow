@@ -23,30 +23,108 @@ let activeEnabledTypes: Set<string> = new Set(SUPPORTED_TYPES);
 /** Session ID generated once per page load (set on first intercept). */
 let sessionId: string | null = null;
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-/**
- * Attach the send-button interceptor for the given platform.
- *
- * @param config    - Platform DOM selectors and input helpers.
- * @param onMasked  - Called after PII has been masked; receives the count and sessionId.
- * @returns         A cleanup function that removes all listeners and observers.
- */
 export async function attachInterceptor(
   config: PlatformConfig,
+  providedSessionId: string,
   onMasked: (count: number, sessionId: string) => void,
 ): Promise<() => void> {
+  sessionId = providedSessionId;
   const cleanupFns: Array<() => void> = [];
+  
+  let isIntercepting = false;
 
-  // 1. Wait for the send button to appear in the DOM.
-  const sendButton = await waitForElement(config.sendButton, 10_000);
+  const handleEvent = (e: Event) => {
+    // Let our programmatic/simulated events pass through naturally to ChatGPT
+    if (!e.isTrusted) return;
 
-  // 2. Capture-phase click listener — never calls preventDefault/stopPropagation.
-  const handleClick = () => void interceptClick(config, onMasked);
-  sendButton.addEventListener('click', handleClick, { capture: true });
-  cleanupFns.push(() => sendButton.removeEventListener('click', handleClick, { capture: true }));
+    const isClick = e.type === 'click' || 
+                    e.type === 'mousedown' || e.type === 'mouseup' || 
+                    e.type === 'pointerdown' || e.type === 'pointerup';
+    const isEnter = (e.type === 'keydown' || e.type === 'keyup' || e.type === 'keypress') && 
+                    (e as KeyboardEvent).key === 'Enter' && 
+                    !(e as KeyboardEvent).shiftKey;
+    
+    if (!isClick && !isEnter) return;
 
-  // 3. Runtime message listener for CONSENT_UPDATED and CLEAR_VAULT.
+    const inputEl = document.querySelector<HTMLElement>(config.inputSelector);
+    if (!inputEl) return;
+    
+    if (isClick) {
+      const target = e.target as HTMLElement;
+      if (!target.closest(config.sendButton)) return;
+    } else if (isEnter) {
+      if (!inputEl.contains(e.target as Node) && e.target !== inputEl) return;
+    }
+
+    // If we are already busy masking from a previous event (e.g. we caught keydown
+    // and this is the subsequent keyup), aggressively block it so ChatGPT doesn't get it!
+    if (isIntercepting) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return;
+    }
+
+    const text = config.getInputText(inputEl);
+    if (!text.trim()) return;
+
+    const { mappings } = detectAndReplace(text, 'placeholder', [...activeEnabledTypes]);
+    if (mappings.length === 0) return;
+
+    // We found PII! Stop this event from reaching ChatGPT synchronously!
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    isIntercepting = true;
+    
+    const triggerEvent = e.type;
+
+    void interceptClick(config, onMasked, text, mappings, inputEl).then(() => {
+      setTimeout(() => {
+        const btn = document.querySelector<HTMLElement>(config.sendButton);
+        if (btn) {
+           if (triggerEvent.includes('down')) {
+             btn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+             btn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+             btn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
+             btn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+             btn.click();
+           } else {
+             btn.click();
+           }
+        } else {
+           const newEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+           inputEl.dispatchEvent(newEvent);
+        }
+        isIntercepting = false;
+      }, 50);
+    }).catch((err) => {
+      console.error('[ConsentFlow] Intercept failed:', err);
+      isIntercepting = false;
+    });
+  };
+
+  // Attach to window capture phase to guarantee we run BEFORE document/root listeners
+  window.addEventListener('click', handleEvent, { capture: true });
+  window.addEventListener('mousedown', handleEvent, { capture: true });
+  window.addEventListener('mouseup', handleEvent, { capture: true });
+  window.addEventListener('pointerdown', handleEvent, { capture: true });
+  window.addEventListener('pointerup', handleEvent, { capture: true });
+  window.addEventListener('keydown', handleEvent, { capture: true });
+  window.addEventListener('keyup', handleEvent, { capture: true });
+  window.addEventListener('keypress', handleEvent, { capture: true });
+  cleanupFns.push(() => {
+    window.removeEventListener('click', handleEvent, { capture: true });
+    window.removeEventListener('mousedown', handleEvent, { capture: true });
+    window.removeEventListener('mouseup', handleEvent, { capture: true });
+    window.removeEventListener('pointerdown', handleEvent, { capture: true });
+    window.removeEventListener('pointerup', handleEvent, { capture: true });
+    window.removeEventListener('keydown', handleEvent, { capture: true });
+    window.removeEventListener('keyup', handleEvent, { capture: true });
+    window.removeEventListener('keypress', handleEvent, { capture: true });
+  });
+
   const handleMessage = (
     message: { type: string; entityType?: string; enabled?: boolean },
   ) => {
@@ -66,7 +144,6 @@ export async function attachInterceptor(
   chrome.runtime.onMessage.addListener(handleMessage);
   cleanupFns.push(() => chrome.runtime.onMessage.removeListener(handleMessage));
 
-  // Return a single cleanup function.
   return () => cleanupFns.forEach(fn => fn());
 }
 
@@ -75,31 +152,15 @@ export async function attachInterceptor(
 async function interceptClick(
   config: PlatformConfig,
   onMasked: (count: number, sid: string) => void,
+  text: string,
+  mappings: ReturnType<typeof detectAndReplace>['mappings'],
+  inputEl: HTMLElement,
 ): Promise<void> {
-  // a. Read current text.
-  const inputEl = document.querySelector<HTMLElement>(config.inputSelector);
-  if (!inputEl) return;
-
-  const text = config.getInputText(inputEl);
-  if (!text.trim()) return;
-
-  // b. Detect PII in placeholder mode.
-  const { anonymized, mappings } = detectAndReplace(
-    text,
-    'placeholder',
-    [...activeEnabledTypes],
-  );
-
-  // c. No PII found — nothing to do.
-  if (mappings.length === 0) return;
-
-  // d. Generate sessionId once per page load.
   if (!sessionId) {
     sessionId = crypto.randomUUID();
   }
   const sid = sessionId;
 
-  // e. Send to service worker with a 3 s timeout race.
   const placeholders = mappings.map(m => m.placeholder);
 
   try {
@@ -109,7 +170,7 @@ async function interceptClick(
     ]) as { ok: boolean; dummies?: Record<string, string>; error?: string } | null;
 
     if (response?.ok && response.dummies) {
-      // f. Backend succeeded — swap placeholders for dummies.
+      const { anonymized } = detectAndReplace(text, 'placeholder', [...activeEnabledTypes]);
       let finalText = anonymized;
       for (const mapping of mappings) {
         const dummy = response.dummies[mapping.placeholder];
@@ -120,7 +181,6 @@ async function interceptClick(
       }
       config.setInputText(inputEl, finalText);
 
-      // Update per-type counts in IndexedDB metadata (non-PII).
       const typeCounts: Record<string, number> = {};
       for (const m of mappings) {
         typeCounts[m.type] = (typeCounts[m.type] ?? 0) + 1;
@@ -131,12 +191,10 @@ async function interceptClick(
 
       onMasked(mappings.length, sid);
     } else {
-      // g. Response says not ok — use offline fallback.
-      applyOfflineFallback(config, inputEl, text, sid, onMasked);
+      await applyOfflineFallback(config, inputEl, text, sid, onMasked);
     }
   } catch {
-    // Timeout or any other failure — offline fallback.
-    applyOfflineFallback(config, inputEl, text, sid, onMasked);
+    await applyOfflineFallback(config, inputEl, text, sid, onMasked);
   }
 }
 

@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   // 2. Per-page-load session ID.
   const sessionId = crypto.randomUUID();
   // Persist so the popup can read it.
-  chrome.storage.session?.set({ currentSessionId: sessionId }).catch(() => {/* ignore */});
+  chrome.storage.local.set({ currentSessionId: sessionId }).catch(() => {/* ignore */});
 
   // 3. Load consent profile → build activeEnabledTypes Set.
   const activeEnabledTypes = await loadConsentProfile();
@@ -98,7 +98,7 @@ async function attachAndBind(
   activeEnabledTypes: Set<string>,
 ): Promise<() => void> {
   try {
-    const cleanup = await attachInterceptor(platformConfig, (count, sid) => {
+    const cleanup = await attachInterceptor(platformConfig, sessionId, (count, sid) => {
       attachReverseMapper(platformConfig, sid);
       chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count }).catch(() => {/* offline */});
     });
