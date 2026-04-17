@@ -1,0 +1,126 @@
+## ============================================================
+## ConsentFlow — Render Blueprint (render.yaml)
+## ============================================================
+## Usage:
+##   1. Push this file to the repo root (or consentflow-backend/).
+##   2. In the Render dashboard, click "New → Blueprint" and
+##      point it at this repo. Render will provision every
+##      service defined here automatically.
+##
+## External services NOT managed here (provision separately):
+##   • Kafka — use Upstash Kafka (free tier) or Confluent Cloud
+##   • OTel / Grafana — optional; disable with OTEL_ENABLED=false
+
+services:
+  # ── FastAPI Web Service ──────────────────────────────────────
+  - type: web
+    name: consentflow-api
+    runtime: docker
+    # Root of the Docker build context (where Dockerfile lives).
+    # Adjust if you place render.yaml at the mono-repo root.
+    dockerfilePath: ./Dockerfile
+    region: oregon          # oregon | singapore | frankfurt | ohio
+    plan: starter           # free | starter | standard | pro
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      # ── PostgreSQL (Render Managed) ──────────────────────────
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: consentflow-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: consentflow-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: consentflow-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: consentflow-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: consentflow-db
+          property: password
+
+      # ── Redis (Render Managed) ───────────────────────────────
+      - key: REDIS_HOST
+        fromService:
+          name: consentflow-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: consentflow-redis
+          type: redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          name: consentflow-redis
+          type: redis
+          property: password
+
+      # ── Application ──────────────────────────────────────────
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CONSENT_CACHE_TTL
+        value: "60"
+
+      # ── Kafka (set manually in Render dashboard) ─────────────
+      # Use Upstash Kafka or Confluent Cloud free tier.
+      # Format: "broker-host:9092" or SASL URL for Upstash.
+      - key: KAFKA_BROKER_URL
+        sync: false          # filled manually in dashboard
+      - key: KAFKA_TOPIC_REVOKE
+        value: consent.revoked
+
+      # ── AI Keys (set manually in Render dashboard) ───────────
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: MISTRAL_MODEL
+        value: mistral-small-latest
+
+      # ── Policy Auditor / Ollama ──────────────────────────────
+      # On Render, Ollama cannot run locally.
+      # Options: a) leave blank to disable Gate 05,
+      #          b) point at a separate Render service running Ollama.
+      - key: OLLAMA_BASE_URL
+        value: ""
+      - key: OLLAMA_MODEL
+        value: gemma2:2b
+
+      # ── OpenTelemetry ────────────────────────────────────────
+      # Set to "true" only if you wire up an OTLP-compatible
+      # collector (e.g. Grafana Cloud, Honeycomb, etc.)
+      - key: OTEL_ENABLED
+        value: "false"
+      - key: OTEL_ENDPOINT
+        value: "http://localhost:4317"
+      - key: OTEL_SERVICE_NAME
+        value: consentflow
+
+      # ── CORS allowed origins (comma-separated) ───────────────
+      # Add your Render frontend URL after deployment.
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+
+  # ── Redis (Render Managed Cache) ─────────────────────────────
+  - type: redis
+    name: consentflow-redis
+    plan: free              # free | starter
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  # ── PostgreSQL (Render Managed Database) ─────────────────────
+  - name: consentflow-db
+    databaseName: consentflow
+    user: consentflow
+    plan: free              # free | starter | standard

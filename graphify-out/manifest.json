@@ -236,7 +236,7 @@
     "hash": "e66700f91023f0464d67089212b8f777"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\index.ts": {
-    "mtime": 1778016561.299457,
+    "mtime": 1778016907.749477,
     "hash": "d9bd74ba5096b8693ff9515ec453f0e3"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\interceptor.ts": {
@@ -503,10 +503,6 @@
     "mtime": 1777972957.6105402,
     "hash": "2ed67c68f28bc1ef95ac24167431d7e8"
   },
-  "D:\\Project\\ConsentFlow\\plan.md": {
-    "mtime": 1777975196.0766518,
-    "hash": "f7fa09d6f2fd30c3e2707ef2de3ecbce"
-  },
   "D:\\Project\\ConsentFlow\\presentation.md": {
     "mtime": 1777972957.7339888,
     "hash": "eef6d2d0e953de39aa512af501c414fe"
@@ -520,8 +516,8 @@
     "hash": "efcb9ecfa0b2df1c186e3da3b299ca1b"
   },
   "D:\\Project\\ConsentFlow\\README.md": {
-    "mtime": 1778010560.9819047,
-    "hash": "578201101a81b501910266d9e321a30a"
+    "mtime": 1778016987.8863163,
+    "hash": "6c045275b35c11fabc296cc5957a948c"
   },
   "D:\\Project\\ConsentFlow\\consentflow-backend\\docker-compose.yml": {
     "mtime": 1777972957.6318424,
