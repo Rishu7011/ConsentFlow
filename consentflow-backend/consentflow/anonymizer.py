@@ -6,10 +6,18 @@ ALL_PII_ENTITIES list covering GDPR Article 9 sensitive categories.
 
 Public API
 ----------
-analyzer          AnalyzerEngine singleton  — use for chat scanning
-anonymizer        AnonymizerEngine singleton — use for chat redaction
-ALL_PII_ENTITIES  list[str]                 — full entity list for analyze()
-anonymize_record  (record: dict) -> dict    — dataset gate helper (unchanged)
+get_analyzer()    -> AnalyzerEngine   — lazy singleton, loaded on first call
+get_anonymizer()  -> AnonymizerEngine — lazy singleton
+analyzer          property alias for backward-compat (loads on first access)
+anonymizer        property alias for backward-compat (loads on first access)
+ALL_PII_ENTITIES  list[str]           — full entity list for analyze()
+anonymize_record  (record: dict) -> dict — dataset gate helper (unchanged)
+
+Memory optimisation (Render free tier)
+--------------------------------------
+Switched from en_core_web_lg (~700 MB) to en_core_web_sm (~12 MB).
+The NLP engine + AnalyzerEngine are now loaded **lazily** on first call
+so app startup does not OOM on Render's 512 MB free-tier containers.
 
 Custom recognizers added
 ------------------------
@@ -39,7 +47,6 @@ aadhaar_recognizer = PatternRecognizer(
     supported_entity="IN_AADHAAR",
     patterns=[
         Pattern("AADHAAR", r"\b[2-9]{1}[0-9]{3}\s?[0-9]{4}\s?[0-9]{4}\b", 0.85),
-        # Demo: only when aadhaar context keyword is present
         Pattern("AADHAAR_DEMO", r"\b\d{5,12}\b", 0.6),
     ],
     context=["aadhaar", "aadhar", "addhar", "uid"],
@@ -48,9 +55,7 @@ aadhaar_recognizer = PatternRecognizer(
 pan_recognizer = PatternRecognizer(
     supported_entity="IN_PAN",
     patterns=[
-        # Strict: exactly 10-char PAN format (AAAAA9999A)
         Pattern("PAN", r"\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b", 0.85),
-        # Demo: only when explicit PAN context keyword is also present
         Pattern("PAN_DEMO", r"\b[A-Z0-9]{5,10}\b", 0.6),
     ],
     context=["pan", "pan card", "income tax", "permanent account"],
@@ -114,7 +119,6 @@ relationship_recognizer = PatternRecognizer(
     context=["relationship", "married", "single", "partner", "dating"],
 )
 
-# Hardcoded recognizer for demo names (since lower-case names often fail NLP NER)
 demo_name_recognizer = PatternRecognizer(
     supported_entity="PERSON",
     patterns=[
@@ -123,73 +127,24 @@ demo_name_recognizer = PatternRecognizer(
     ],
 )
 
-# ── Build registry with ALL entities ──────────────────────────────────────────
-
-registry = RecognizerRegistry()
-registry.load_predefined_recognizers()
-
-for _recognizer in [
-    aadhaar_recognizer,
-    pan_recognizer,
-    india_phone_recognizer,
-    age_recognizer,
-    medical_recognizer,
-    financial_recognizer,
-    relationship_recognizer,
-    demo_name_recognizer,
-]:
-    registry.add_recognizer(_recognizer)
-
-# ── NLP engine (en_core_web_lg for best NER accuracy) ─────────────────────────
-
-_nlp_config = {
-    "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "en", "model_name": "en_core_web_lg"}],
-}
-_provider = NlpEngineProvider(nlp_configuration=_nlp_config)
-_nlp_engine = _provider.create_engine()
-
-# ── Module-level singletons (loaded once on import) ───────────────────────────
-
-analyzer = AnalyzerEngine(
-    nlp_engine=_nlp_engine,
-    registry=registry,
-    supported_languages=["en"],
-)
-
-anonymizer = AnonymizerEngine()
-
-# ── Full entity list to scan for ──────────────────────────────────────────────
-# Pass this to analyzer.analyze() as the entities parameter.
-
-_PERSON_NAMES = [
-    "Fake Person A",
-    "Fake Person B",
-    "Dummy User X",
-    "Test Name Y",
-    "Masked User Z",
-]
+# ── Full entity list ───────────────────────────────────────────────────────────
 
 ALL_PII_ENTITIES: list[str] = [
     # Identity
     "PERSON",
     "AGE",
     "DATE_TIME",
-
     # Location
     "LOCATION",
     "IP_ADDRESS",
-
     # Contact
     "EMAIL_ADDRESS",
     "PHONE_NUMBER",
     "URL",
-
     # Financial
     "CREDIT_CARD",
     "IBAN_CODE",
     "FINANCIAL_INFO",
-
     # Documents
     "PASSPORT",
     "DRIVER_LICENSE",
@@ -197,16 +152,100 @@ ALL_PII_ENTITIES: list[str] = [
     "IN_AADHAAR",
     "IN_PAN",
     "IN_PHONE",
-
     # Sensitive categories (GDPR Article 9)
     "MEDICAL_CONDITION",
-    "NRP",                # Nationality, Religion, Political views
+    "NRP",
     "RELATIONSHIP_STATUS",
 ]
 
-# ── Dataset gate helper (backward-compatible) ─────────────────────────────────
-# anonymize_record() is used by dataset_gate.py / otel_dataset_gate.py.
-# It replaces all PII in every string field of an arbitrary dict.
+# ── Lazy singletons ───────────────────────────────────────────────────────────
+# The NLP engine + AnalyzerEngine are expensive (~300 MB with en_core_web_sm).
+# We load them on the FIRST call to get_analyzer() / get_anonymizer() so that
+# the app process can start and pass Render's health check before loading them.
+
+_analyzer_instance: AnalyzerEngine | None = None
+_anonymizer_instance: AnonymizerEngine | None = None
+
+
+def _build_registry() -> RecognizerRegistry:
+    registry = RecognizerRegistry()
+    registry.load_predefined_recognizers()
+    for rec in [
+        aadhaar_recognizer,
+        pan_recognizer,
+        india_phone_recognizer,
+        age_recognizer,
+        medical_recognizer,
+        financial_recognizer,
+        relationship_recognizer,
+        demo_name_recognizer,
+    ]:
+        registry.add_recognizer(rec)
+    return registry
+
+
+def get_analyzer() -> AnalyzerEngine:
+    """Return the AnalyzerEngine singleton, creating it on first call."""
+    global _analyzer_instance
+    if _analyzer_instance is None:
+        logger.info("Loading Presidio AnalyzerEngine with en_core_web_sm …")
+        _nlp_config = {
+            "nlp_engine_name": "spacy",
+            # en_core_web_sm: ~12 MB vs en_core_web_lg: ~700 MB
+            # Slightly lower NER accuracy, but fits Render 512 MB free tier.
+            "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
+        }
+        _provider = NlpEngineProvider(nlp_configuration=_nlp_config)
+        _nlp_engine = _provider.create_engine()
+        _analyzer_instance = AnalyzerEngine(
+            nlp_engine=_nlp_engine,
+            registry=_build_registry(),
+            supported_languages=["en"],
+        )
+        logger.info("Presidio AnalyzerEngine ready ✓")
+    return _analyzer_instance
+
+
+def get_anonymizer() -> AnonymizerEngine:
+    """Return the AnonymizerEngine singleton, creating it on first call."""
+    global _anonymizer_instance
+    if _anonymizer_instance is None:
+        _anonymizer_instance = AnonymizerEngine()
+    return _anonymizer_instance
+
+
+# ── Backward-compatible module-level aliases ──────────────────────────────────
+# Old code that does `from consentflow.anonymizer import analyzer` still works,
+# but now triggers lazy loading instead of loading at import time.
+
+class _LazyAnalyzer:
+    """Descriptor that returns the lazy singleton when accessed."""
+    def __get__(self, obj: Any, objtype: Any = None) -> AnalyzerEngine:
+        return get_analyzer()
+
+class _LazyAnonymizer:
+    """Descriptor that returns the lazy singleton when accessed."""
+    def __get__(self, obj: Any, objtype: Any = None) -> AnonymizerEngine:
+        return get_anonymizer()
+
+
+# Module-level names used by extension.py and other routers
+# These resolve lazily on first attribute access.
+import sys as _sys  # noqa: E402
+
+class _LazyModule(_sys.modules[__name__].__class__):  # type: ignore[misc]
+    @property  # type: ignore[override]
+    def analyzer(self) -> AnalyzerEngine:
+        return get_analyzer()
+
+    @property  # type: ignore[override]
+    def anonymizer(self) -> AnonymizerEngine:
+        return get_anonymizer()
+
+
+_sys.modules[__name__].__class__ = _LazyModule
+
+# ── Dataset gate helper ────────────────────────────────────────────────────────
 
 _REPLACE_OPERATOR: dict[str, OperatorConfig] = {
     "DEFAULT": OperatorConfig("replace", {"new_value": "<REDACTED>"}),
@@ -219,14 +258,6 @@ def anonymize_record(record: dict[str, Any]) -> dict[str, Any]:
 
     Non-string values are preserved verbatim.  Nested dicts / lists are
     recursively processed so deeply nested PII is also caught.
-
-    Parameters
-    ----------
-    record: A dict representing a single data record (e.g. a training sample).
-
-    Returns
-    -------
-    A new dict with the same keys but PII-masked string values.
     """
     return _anonymize_value(record)
 
@@ -239,7 +270,6 @@ def _anonymize_value(value: Any) -> Any:
         return {k: _anonymize_value(v) for k, v in value.items()}
     if isinstance(value, list):
         return [_anonymize_value(item) for item in value]
-    # int, float, bool, None — leave untouched
     return value
 
 
@@ -247,10 +277,13 @@ def _anonymize_text(text: str) -> str:
     """
     Detect and mask PII in a single text string.
 
-    Returns the anonymized string.  If Presidio finds no PII entities the
+    Returns the anonymized string. If Presidio finds no PII entities the
     original text is returned unchanged.
     """
-    results = analyzer.analyze(
+    _analyzer = get_analyzer()
+    _anonymizer_engine = get_anonymizer()
+
+    results = _analyzer.analyze(
         text=text,
         language="en",
         entities=ALL_PII_ENTITIES,
@@ -258,7 +291,7 @@ def _anonymize_text(text: str) -> str:
     if not results:
         return text
 
-    anonymized = anonymizer.anonymize(
+    anonymized = _anonymizer_engine.anonymize(
         text=text,
         analyzer_results=results,
         operators=_REPLACE_OPERATOR,

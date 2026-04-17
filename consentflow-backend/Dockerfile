@@ -29,13 +29,15 @@ COPY consentflow/ ./consentflow/
 RUN uv sync --no-dev
 
 # Download spaCy NLP model required by Presidio (anonymizer.py)
-# en_core_web_lg gives best NER accuracy for PII detection
-# We use uv pip install directly instead of spacy download to prevent pip from hanging silently
-RUN uv pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl"
+# en_core_web_sm (~12 MB) fits comfortably within Render's 512 MB free-tier.
+# Switched from en_core_web_lg (~700 MB) which caused OOM on startup.
+RUN uv pip install \
+    "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl"
 
 # Expose the port uvicorn listens on
 EXPOSE 8000
 
-# Run the ASGI server via uv so the virtualenv is automatically activated
+# Run with 1 worker — keeps RAM under Render's 512 MB free-tier limit.
+# Scale to 2+ workers on a paid plan.
 CMD ["uv", "run", "uvicorn", "consentflow.app.main:app", \
-     "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+     "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
