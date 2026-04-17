@@ -6,6 +6,7 @@ throughout the request lifecycle without globals.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
@@ -19,16 +20,29 @@ logger = logging.getLogger(__name__)
 
 
 async def create_pool() -> Pool:
-    """Create and return an asyncpg connection pool."""
-    pool: Pool = await asyncpg.create_pool(
-        dsn=settings.asyncpg_dsn,
-        min_size=2,
-        max_size=10,
-        command_timeout=30,
-        statement_cache_size=0,   # safe default for pgBouncer compatibility
-    )
-    logger.info("PostgreSQL connection pool created (min=2, max=10)")
-    return pool
+    """Create and return an asyncpg connection pool with retry logic."""
+    retries = 30
+    for attempt in range(1, retries + 1):
+        try:
+            pool: Pool = await asyncpg.create_pool(
+                dsn=settings.asyncpg_dsn,
+                min_size=2,
+                max_size=10,
+                command_timeout=30,
+                statement_cache_size=0,   # safe default for pgBouncer compatibility
+            )
+            logger.info("PostgreSQL connection pool created (min=2, max=10)")
+            return pool
+        except Exception as e:
+            if attempt < retries:
+                logger.warning(
+                    "Database connection failed: %s. Retrying in 2s (attempt %d/%d)...", 
+                    e, attempt, retries
+                )
+                await asyncio.sleep(2)
+            else:
+                logger.error("Failed to connect to the database after %d attempts.", retries)
+                raise
 
 
 async def close_pool(pool: Pool) -> None:
