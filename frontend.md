@@ -318,7 +318,7 @@ interface PolicyScanResult {
 
 ```ts
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000",
 });
 
 // Request interceptor: attach active user ID header
@@ -402,7 +402,7 @@ npm run lint
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend API base URL |
+| `NEXT_PUBLIC_BACKEND_URL` | `http://localhost:8000` | Backend API base URL |
 
 ---
 
