@@ -11,101 +11,79 @@ ConsentFlow is a full-stack middleware system that enforces user consent revocat
 
 ---
 
-## What it does
+## 🏗️ Architecture Overview
 
-A user revokes consent once — via the interactive dashboard, CMP webhook, or direct API. ConsentFlow:
+The system consists of three main components:
 
-1. **Writes** the revocation to PostgreSQL (authoritative record)
-2. **Invalidates** the Redis cache entry for that user+purpose
-3. **Publishes** a `consent.revoked` event to Apache Kafka
-4. **Writes** a freeze log entry recording the memory count at revocation time
-5. **Enforces** the revocation at every gate in the AI pipeline:
+### 1. The Backend Core (FastAPI)
+The backend intercepts data at various AI pipeline stages via **Enforcement Gates**:
 
 | Gate | Layer | Enforcement |
 |------|-------|-------------|
-| **Training Gate** | Model training | Stops writing new facts to the RAG memory store |
-| **Presidio PII** | Message scanning | Redacts PII (`<REDACTED>`) in all messages after revocation |
-| **Dataset Gate** | Data prep | Anonymizes revoked users' data before MLflow registration |
-| **Inference Gate** | Live serving | ASGI middleware returns `403` in <5 ms (Redis cache hit) |
-| **Drift Monitor** | Monitoring | Flags revoked-user samples in Evidently drift windows |
-| **Policy Auditor** | Compliance | LLM-based ToS scanner for third-party AI integrations |
+| **Gate 01: Dataset** | Data prep | Anonymizes revoked users' data before MLflow registration via Presidio |
+| **Gate 02: Training** | Model training | Kafka consumer quarantines MLflow runs on revocation |
+| **Gate 03: Inference** | Live serving | ASGI middleware returns `403` in <5 ms (Redis cache hit) |
+| **Gate 04: Drift Monitor** | Monitoring | Flags revoked-user samples in Evidently drift windows |
+| **Gate 05: Policy Auditor** | Compliance | LLM-based ToS scanner (Anthropic Claude) for third-party AI integrations |
+
+### 2. The Frontend Dashboard (Next.js)
+A Next.js 16 (App Router) interface providing a three-panel interactive dashboard:
+- **Live RAG Memory Bank**: See facts extracted from chat history.
+- **Real-Time AI Chat**: Chat interface with PII masking and RAG integration.
+- **Pipeline Gates**: Animated view of the 5 gates with a live audit ticker.
+
+### 3. The Privacy Shield (Chrome Extension)
+A Manifest V3 browser extension (`consentflow-extension`) that masks your PII before it reaches any external AI chatbot (ChatGPT, Claude).
+- **Interceptor**: Detects PII (Email, Phone, Aadhaar, PAN, UPI) in your chat input and replaces it with dummy values or tokens (e.g. `[PERSON_1]`).
+- **Reverse Mapper**: Automatically restores the dummy tokens to real values in the AI's streaming response.
+- **Offline Fallback**: Works entirely locally when the backend is unreachable.
 
 ---
 
-## Architecture
-
-```
-User revokes consent (Dashboard or API)
-        │
-        ▼
-POST /webhook/consent-revoke
-        ├─► PostgreSQL  (upsert consent_records → revoked)
-        ├─► Redis       (invalidate cache key)
-        ├─► consent_freeze_log (snapshot memory count)
-        └─► Kafka       (publish consent.revoked)
-                ├─► Training Gate   (memory writes blocked)
-                ├─► Presidio Gate   (PII redacted in messages)
-                ├─► Dataset Gate    (PII scrubbed from datasets)
-                ├─► Inference Gate  (403 Forbidden)
-                ├─► Drift Monitor   (severity alert)
-                └─► Policy Auditor  (LLM ToS scan + DB log)
-
-POST /consent (status=granted)
-        └─► Clears consent_freeze_log (memory bank unfreezes)
-```
-
-The **Next.js 16 frontend** provides a three-panel interactive dashboard: live RAG Memory Bank, real-time AI chat, and an animated Pipeline Gates view with live audit ticker.
-
----
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Docker + Docker Compose v2
-- Node.js 20+ (for the frontend)
+- Node.js 20+ (for frontend and extension)
 - Python 3.12+ and `uv` (for local backend dev only)
 
-### 1. Clone and configure
+### 1. Clone and Configure
 
 ```bash
-git clone https://github.com/Rishu7011/ConsentFlow-
-cd ConsentFlow-/consentflow-backend
+git clone https://github.com/Rishu7011/ConsentFlow.git
+cd ConsentFlow/consentflow-backend
 cp .env.example .env          # Linux/Mac
-copy .env.example .env        # Windows PowerShell
+copy .env.example .env        # Windows
 ```
 
-Edit `.env`. At minimum set `GEMINI_API_KEY` for AI chat. See [Environment variables](#environment-variables).
+Edit `.env`. At minimum set `GEMINI_API_KEY` or `MISTRAL_API_KEY` for AI chat.
 
-### 2. (Apple Silicon only) Add platform pin
+> **Apple Silicon users:** Add `platform: linux/amd64` to the `zookeeper` and `kafka` services in `docker-compose.yml`.
 
-In `docker-compose.yml`, add `platform: linux/amd64` to the `zookeeper` and `kafka` services.
-
-### 3. Start the full backend stack
+### 2. Start the Backend Stack
 
 ```bash
 cd consentflow-backend
 docker compose up --build
 ```
-
 Starts PostgreSQL 16, Redis 7, Zookeeper, Kafka, the ConsentFlow API, OTel Collector, and Grafana. Migrations `001`–`006` are auto-applied at startup.
 
-### 4. Start the frontend
+### 3. Start the Frontend Dashboard
 
 ```bash
-cd consentflow-frontend
+cd ../consentflow-frontend
 npm install
 npm run dev
 ```
+Open **http://localhost:3000** or **http://localhost:3001** (check your terminal).
 
-Open **http://localhost:3000**.
+### 4. Build and Load the Chrome Extension
 
-### 5. Build and Load the Chrome Extension
-
-The extension intercepts PII locally before it hits the AI platform. **You MUST build it first** (Chrome cannot load raw `.ts` files from the source directory directly).
+The extension intercepts PII locally before it hits the AI platform. **You MUST build it first**.
 
 ```bash
-cd consentflow-extension
+cd ../consentflow-extension
 npm install
 npm run build
 ```
@@ -115,157 +93,54 @@ Then, in Chrome:
 2. Enable **Developer mode** (top right)
 3. Click **Load unpacked** and select the `consentflow-extension/dist` folder.
 
-### 6. Verify health
-
-```bash
-curl http://localhost:8000/health
-# → {"status":"ok","postgres":"ok","redis":"ok","kafka":"ok","otel":"disabled"}
-```
-
-### Service URLs
-
-| Service | URL |
-|---------|-----|
-| **Frontend dashboard** | http://localhost:3000 |
-| **API Swagger docs** | http://localhost:8000/docs |
-| Grafana | http://localhost:3001 |
-| Prometheus | http://localhost:8889/metrics |
-| OTel health | http://localhost:13133 |
-| Kafka (external) | localhost:29092 |
-
 ---
 
-## Interactive Demo
+## 🎮 Interactive Demos
 
+### Demo 1: Full Pipeline Revocation
 The dashboard uses a seeded demo user (`550e8400-e29b-41d4-a716-446655440000`).
+1. **Chat**: Send a message. PII is scanned; facts are extracted and stored in the RAG memory bank.
+2. **Revoke Consent**: Click "🚨 REVOKE DEMO'S CONSENT" to trigger the full Kafka revocation cascade.
+3. **Chat Again**: PII is redacted, memory is frozen (AI replies but learns nothing new). Inference checks will start returning 403 Forbidden.
+4. **Restore Consent**: Click "✅ RESTORE CONSENT" to grant consent. Backend auto-clears the freeze log.
 
-1. **Chat** — every message is PII-scanned by Presidio; facts are extracted and stored in the RAG memory bank (the AI remembers you)
-2. **Click "🚨 REVOKE DEMO'S CONSENT"** — triggers the full cascade with a GSAP animation
-3. **Chat again** — PII is redacted, memory is frozen (AI replies but learns nothing new)
-4. **Click "✅ RESTORE CONSENT"** — grants consent; backend auto-clears the freeze log
-5. **Click "Reset Demo"** — wipes all memory, chat, and consent for a clean slate
-
----
-
-## Quick API Demo
-
-```bash
-# Grant consent
-curl -X POST http://localhost:8000/consent \
-  -H "Content-Type: application/json" \
-  -d '{"user_id":"550e8400-e29b-41d4-a716-446655440000","data_type":"pii","purpose":"model_training","status":"granted"}'
-
-# Chat (memory is recorded)
-curl -X POST http://localhost:8000/chat/message \
-  -H "Content-Type: application/json" \
-  -d '{"user_id":"550e8400-e29b-41d4-a716-446655440000","message":"My name is Alice and I live in London"}'
-
-# Revoke via webhook
-curl -X POST http://localhost:8000/webhook/consent-revoke \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"550e8400-e29b-41d4-a716-446655440000","purpose":"model_training","consentStatus":"revoked","timestamp":"2026-04-30T12:00:00Z"}'
-
-# Inference is now blocked (403)
-curl -X POST http://localhost:8000/infer/predict \
-  -H "X-User-ID: 550e8400-e29b-41d4-a716-446655440000" \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"hello"}'
-
-# Scan a third-party policy for consent bypass clauses
-curl -X POST http://localhost:8000/policy/scan \
-  -H "Content-Type: application/json" \
-  -d '{"integration_name":"ExampleAI","policy_text":"We may use your data to train our models indefinitely."}'
-```
+### Demo 2: Privacy Shield Extension
+1. Open ChatGPT or Claude.
+2. Type: "My name is Alex Smith and my phone number is 9999999999".
+3. The extension instantly replaces these with tokens/dummies before sending to the AI.
+4. When the AI responds, the tokens are seamlessly reversed in your browser.
 
 ---
 
-## Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `POSTGRES_HOST` | PostgreSQL host | `localhost` | Yes |
-| `POSTGRES_PORT` | PostgreSQL port | `5432` | Yes |
-| `POSTGRES_DB` | Database name | `consentflow` | Yes |
-| `POSTGRES_USER` | DB user | `consentflow` | Yes |
-| `POSTGRES_PASSWORD` | DB password | `consentflow` | Yes |
-| `REDIS_HOST` | Redis host | `localhost` | Yes |
-| `REDIS_PORT` | Redis port | `6379` | Yes |
-| `REDIS_DB` | Redis DB index | `0` | Yes |
-| `REDIS_PASSWORD` | Redis auth | *(empty)* | No |
-| `APP_ENV` | Environment label | `development` | Yes |
-| `LOG_LEVEL` | Log verbosity | `INFO` | Yes |
-| `CONSENT_CACHE_TTL` | Redis TTL (seconds) | `60` | Yes |
-| `KAFKA_BROKER_URL` | Kafka broker | `localhost:29092` | Yes |
-| `KAFKA_TOPIC_REVOKE` | Revocation topic | `consent.revoked` | Yes |
-| `OTEL_ENABLED` | Enable OTel | `false` | No |
-| `OTEL_ENDPOINT` | OTLP gRPC endpoint | `http://localhost:4317` | No |
-| `OTEL_SERVICE_NAME` | OTel service name | `consentflow` | No |
-| `GEMINI_API_KEY` | Google Gemini API key (AI Tier 2) | *(empty)* | Recommended |
-| `MISTRAL_API_KEY` | Mistral API key (AI Tier 1) | *(empty)* | Recommended |
-| `MISTRAL_MODEL` | Mistral model | `mistral-small-latest` | No |
-| `OLLAMA_BASE_URL` | Ollama endpoint (local fallback) | `http://localhost:11434` | No |
-| `OLLAMA_MODEL` | Ollama model | `gemma2:2b` | No |
-
-> **AI fallback chain:** Chat and Policy Auditor use **Mistral → Gemini 2.0 Flash → Ollama**. Set at least one API key for production use.
-
----
-
-## API Reference
+## 🔌 API Reference
 
 Full interactive docs: **http://localhost:8000/docs**
 
-### Users
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/users` | Register user (returns UUID) |
-| `GET` | `/users` | List all users with consent summary |
-| `GET` | `/users/{user_id}` | Get user by UUID |
+### Core Services
+| Service | Internal URL | Description |
+|---------|-------------|-------------|
+| **Backend API** | `http://localhost:8000` | FastAPI server with `/consent`, `/infer`, `/policy/scan` |
+| **Frontend** | `http://localhost:3000` | Next.js app |
+| **Grafana** | `http://localhost:3001` | Observability dashboards |
+| **Prometheus** | `http://localhost:8889/metrics` | Metrics |
+| **OTel Health** | `http://localhost:13133` | OTel Collector |
+| **Kafka** | `localhost:29092` | Event broker |
 
-### Consent
+### Key API Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/consent` | Upsert consent (granting auto-clears freeze log) |
-| `GET` | `/consent` | List all records |
-| `GET` | `/consent/{user_id}/{purpose}` | Effective status (Redis-cached) |
-| `POST` | `/consent/revoke` | Revoke all rows for user+purpose |
-
-### Webhook
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/webhook/consent-revoke` | OneTrust-style webhook — DB + Redis + Kafka + freeze log |
-| `POST` | `/webhook` | Frontend alias |
-
-### Chat (RAG)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
+| `POST` | `/consent` | Upsert consent |
+| `POST` | `/consent/revoke` | Revoke consent for user+purpose |
+| `POST` | `/webhook/consent-revoke` | OneTrust-style webhook — DB + Redis + Kafka |
 | `POST` | `/chat/message` | Send message; get AI reply + memory state |
-| `GET` | `/chat/state/{user_id}` | Memory + freeze + consent state |
-| `DELETE` | `/chat/state/{user_id}` | Full demo reset |
-| `GET` | `/chat/history` | Paginated chat log |
-
-### Pipeline Gates
-| Method | Endpoint | Description |
-|--------|----------|-------------|
 | `POST` | `/infer/predict` | Protected inference (ASGI consent middleware) |
-| `GET` | `/audit/trail` | Query audit log |
-| `GET` | `/dashboard/stats` | Aggregated metrics |
-
-### Policy Auditor
-| Method | Endpoint | Description |
-|--------|----------|-------------|
 | `POST` | `/policy/scan` | LLM scan of third-party ToS |
-| `GET` | `/policy/scans` | List past scans |
-| `GET` | `/policy/scans/{scan_id}` | Get scan result |
-
-### Health
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Postgres + Redis + Kafka + OTel status |
 
 ---
 
-## Database Schema (6 migrations)
+## 🗄️ Database Schema
 
+The system uses 6 core PostgreSQL migrations:
 | Migration | Table | Purpose |
 |-----------|-------|---------|
 | `001_init.sql` | `users`, `consent_records` | Core consent store |
@@ -277,34 +152,25 @@ Full interactive docs: **http://localhost:8000/docs**
 
 ---
 
-## Running Tests
+## 🛠️ Testing
 
+**Backend:**
 ```bash
 cd consentflow-backend
 uv run pytest                          # full suite
 uv run pytest --cov=consentflow        # with coverage
-uv run pytest tests/test_consent.py    # consent CRUD
 uv run pytest tests/test_step4.py      # inference gate
 uv run pytest tests/test_policy_auditor.py  # policy LLM logic
 ```
 
----
-
-## Platform Notes — Apple Silicon
-
-Add `platform: linux/amd64` to the `zookeeper` and `kafka` services in `docker-compose.yml`. All other images are multi-arch.
-
-```yaml
-zookeeper:
-  image: confluentinc/cp-zookeeper:7.6.0
-  platform: linux/amd64
-kafka:
-  image: confluentinc/cp-kafka:7.6.0
-  platform: linux/amd64
+**Extension:**
+```bash
+cd consentflow-extension
+npm test
 ```
 
 ---
 
-## License
+## 📜 License
 
 [MIT](LICENSE) © 2026 Rishu7011
