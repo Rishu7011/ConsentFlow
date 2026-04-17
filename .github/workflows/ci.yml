@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Backend: Python / pytest ──────────────────────────────────────────────
+  backend-test:
+    name: Backend Tests (Python 3.12)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: consentflow-backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Cache spaCy model
+        id: cache-spacy
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: spacy-en_core_web_lg-${{ runner.os }}
+
+      - name: Download spaCy model
+        run: uv run python -m spacy download en_core_web_lg
+
+      - name: Run pytest
+        run: uv run pytest --tb=short -q
+        env:
+          # All settings have safe defaults in config.py — these are explicit
+          # for clarity and to avoid any OS-level env bleed.
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: consentflow
+          POSTGRES_PASSWORD: consentflow
+          POSTGRES_DB: consentflow
+          REDIS_HOST: localhost
+          KAFKA_BROKER_URL: localhost:29092
+          GEMINI_API_KEY: ""
+          MISTRAL_API_KEY: ""
+          OTEL_ENABLED: "false"
+
+  # ── Extension: Node.js / vitest ───────────────────────────────────────────
+  extension-test:
+    name: Extension Tests (Node 20 / vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: consentflow-extension
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: consentflow-extension/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run vitest
+        run: npm test
