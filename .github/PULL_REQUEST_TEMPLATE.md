@@ -1,67 +1,70 @@
-## Related Issue
+<!-- markdownlint-disable MD041 -->
+## 📝 Summary
+<!-- Briefly explain what this PR does and WHY -->
 
-Closes #<!-- issue number -->
 
----
 
-## Type of Change
-
-- [ ] `feat` — new feature or enhancement
-- [ ] `fix` — bug fix
-- [ ] `docs` — documentation only
-- [ ] `chore` — build, CI, tooling, or dependency update
-- [ ] `test` — adding or updating tests only
-- [ ] `refactor` — code restructure, no behaviour change
-- [ ] `perf` — performance improvement
+## 🔗 Linked Issue
+<!-- Every PR must be linked to an issue. Do not open a PR without one. -->
+Closes #
 
 ---
 
-## Affected Component
+## 🏷️ Suggested Labels
+> Write the tags you think apply to this PR based on our contribution guidelines. A maintainer will confirm.
 
-- [ ] Backend (`consentflow-backend/`)
-- [ ] Frontend (`consentflow-frontend/`)
-- [ ] Chrome Extension (`consentflow-extension/`)
-- [ ] Infrastructure / Docker
-- [ ] Docs / README
+
 
 ---
 
-## Summary of Changes
-
-<!-- 3–5 bullet points describing what you changed and why. -->
-
--
--
--
-
----
-
-## How to Test
-
-<!-- Step-by-step instructions for a reviewer to verify the change. -->
-
-1. 
-2. 
-3. 
+## 🔄 Type of Change
+<!-- Check all that apply -->
+- [ ] 🐛 bugfix
+- [ ] ✨ New feature
+- [ ] 📚 Documentation update
+- [ ] ♻️ Code refactor
+- [ ] 🔒 Security fix
+- [ ] ⚡ Performance improvement
+- [ ] 🎨 UI/UX change
+- [ ] ⚙️ DevOps / CI workflow change
 
 ---
 
-## PR Checklist
-
-Before requesting a review, confirm all of the following:
-
-- [ ] My branch is up to date with `main` (`git pull upstream main`)
-- [ ] All existing tests pass (`uv run pytest` / `npm test`)
-- [ ] I've added or updated tests for new/changed behaviour
-- [ ] Linter is clean — no new errors (`uv run ruff check .` / `npm run lint`)
-- [ ] Formatter applied (`uv run ruff format .` for Python)
-- [ ] My commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
-- [ ] I've updated relevant docs (`README.md`, `backend.md`, `frontend.md`) if needed
-- [ ] No secrets, `.env` files, or credentials are included in this PR
-- [ ] The issue this PR closes is linked above
+## 🛠️ What Was Changed
+<!-- List the specific files changed and what was done -->
+| File | Change |
+|------|--------|
+| `filename.ext` | Description of change |
 
 ---
 
-## Screenshots / Recordings (if applicable)
+## 🧪 Testing Checklist
+- [ ] Backend: `uv run pytest` passes with no errors
+- [ ] Frontend: `npm run dev` runs without errors
+- [ ] Extension: `npm test` passes with no errors
+- [ ] Tested in browser (Chrome / Firefox / Edge)
+- [ ] Tested on mobile screen size
+- [ ] No console errors or warnings
+- [ ] Existing functionality is not broken
+- [ ] Docker stack builds and starts correctly (if infra changes)
 
-<!-- For UI changes, paste a before/after screenshot or a short screen recording. -->
+---
+
+## 📸 Screenshots
+<!-- For UI changes, add before/after screenshots. Delete this section if not applicable -->
+
+**Before:**
+
+
+**After:**
+
+
+---
+
+## 📋 Contributor Checklist
+- [ ] My branch is up to date with `main`
+- [ ] My commit messages follow the format: `type(scope): description`
+- [ ] I have read the [CONTRIBUTING.md](../CONTRIBUTING.md) guide
+- [ ] I have linked this PR to an issue using `Closes #`
+- [ ] I have added a `level:*` difficulty label (required for GSSoC scoring)
+- [ ] This PR is not a duplicate of an existing open PR
