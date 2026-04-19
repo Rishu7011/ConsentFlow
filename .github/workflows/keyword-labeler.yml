@@ -5,6 +5,8 @@ on:
     types: [opened, edited]
   pull_request_target:
     types: [opened, edited, synchronize]
+  issue_comment:
+    types: [created]
 
 jobs:
   labeler:
@@ -20,9 +22,33 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const isPR = !!context.payload.pull_request;
-            const item = isPR ? context.payload.pull_request : context.payload.issue;
+            const isComment = !!context.payload.comment;
+            const isPR = !!context.payload.issue?.pull_request || !!context.payload.pull_request;
+            const item = context.payload.pull_request || context.payload.issue;
             
+            // -----------------------------------------------------------------
+            // Maintainer-Only Commands (e.g., gssoc:approved)
+            // -----------------------------------------------------------------
+            if (isComment) {
+              const commentBody = context.payload.comment.body.toLowerCase();
+              const authorRole = context.payload.comment.author_association;
+              const isMaintainer = ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(authorRole);
+              
+              if (isMaintainer && (commentBody.includes('/approve') || commentBody.includes('/gssoc approved'))) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: item.number,
+                  labels: ['gssoc:approved']
+                });
+              }
+              // If it's just a comment, don't run the rest of the auto-labeler
+              return;
+            }
+
+            // -----------------------------------------------------------------
+            // Automated Keyword Labeling (For all users)
+            // -----------------------------------------------------------------
             const title = item.title.toLowerCase();
             const body = (item.body || '').toLowerCase();
             const fullText = `${title} ${body}`;
@@ -39,12 +65,26 @@ jobs:
             if (title.startsWith('feat:') || title.startsWith('feature:')) labelsToAdd.add('type:feature');
             if (title.startsWith('bug:') || title.startsWith('fix:')) labelsToAdd.add('type:bug');
             if (title.startsWith('docs:')) labelsToAdd.add('type:docs');
+            if (fullText.match(/\b(test|jest|pytest|vitest|coverage)\b/)) labelsToAdd.add('type:testing');
             if (fullText.match(/\b(xss|cve|vulnerability|security)\b/)) labelsToAdd.add('type:security');
-            if (fullText.match(/\b(slow|memory|performance|latency)\b/)) labelsToAdd.add('type:performance');
-            if (fullText.match(/\b(ui|ux|css|design)\b/)) labelsToAdd.add('type:design');
+            if (fullText.match(/\b(slow|memory|performance|latency|optimize)\b/)) labelsToAdd.add('type:performance');
+            if (fullText.match(/\b(ui|ux|css|design|style)\b/)) labelsToAdd.add('type:design');
+            if (title.startsWith('refactor:')) labelsToAdd.add('type:refactor');
+            if (fullText.match(/\b(ci|cd|action|docker|deploy|workflow)\b/)) labelsToAdd.add('type:devops');
+            if (fullText.match(/\b(a11y|accessibility|aria|screen reader)\b/)) labelsToAdd.add('type:accessibility');
             
-            // 3. File Extension Checks (for PRs only)
-            if (isPR) {
+            // 3. Quality & Special Patterns
+            if (fullText.match(/\b(clean code|refactored beautifully)\b/)) labelsToAdd.add('quality:clean');
+            if (fullText.match(/\b(exceptional|outstanding)\b/)) labelsToAdd.add('quality:exceptional');
+            
+            // NOTE: 'gssoc:approved' is explicitly EXCLUDED here so users cannot self-assign it.
+            
+            if (fullText.match(/\b(good first issue|beginner friendly)\b/)) labelsToAdd.add('good first issue');
+            if (fullText.match(/\b(help wanted|need help)\b/)) labelsToAdd.add('help wanted');
+            if (fullText.match(/\b(duplicate of)\b/)) labelsToAdd.add('duplicate');
+
+            // 4. File Extension Checks (for PRs only)
+            if (!!context.payload.pull_request) {
               const { data: files } = await github.rest.pulls.listFiles({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -53,7 +93,8 @@ jobs:
               
               const extensions = files.map(f => f.filename.split('.').pop());
               
-              if (extensions.includes('css') || extensions.includes('tsx')) labelsToAdd.add('type:design');
+              if (extensions.includes('css') || extensions.includes('tsx') || extensions.includes('jsx')) labelsToAdd.add('type:design');
+              if (extensions.includes('php') || extensions.includes('sh')) labelsToAdd.add('type:security');
               if (extensions.includes('py')) labelsToAdd.add('backend');
               if (extensions.includes('yml') || extensions.includes('yaml')) labelsToAdd.add('type:devops');
             }
@@ -68,8 +109,8 @@ jobs:
               });
             }
             
-            // 4. Missing Difficulty Warning (GSSoC Check) for PRs
-            if (isPR) {
+            // 5. Missing Difficulty Warning (GSSoC Check) for PRs
+            if (!!context.payload.pull_request) {
               const currentLabels = await github.rest.issues.listLabelsOnIssue({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
