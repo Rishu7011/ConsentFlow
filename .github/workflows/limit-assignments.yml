@@ -1,0 +1,62 @@
+name: "Assignment Limit Enforcer"
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  check-limits:
+    name: Enforce Issue Limit
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Verify 3-Issue Limit
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const assignee = context.payload.assignee.login;
+            
+            // Allow maintainers to have unlimited assignments
+            const maintainers = ['Niteshagarwal01']; // Assuming repo owner is default maintainer
+            if (maintainers.includes(assignee)) {
+              console.log(`Assignee ${assignee} is a maintainer. Skipping limit check.`);
+              return;
+            }
+            
+            // Query GitHub API for all currently open issues assigned to this user
+            const openIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignee: assignee,
+              state: 'open'
+            });
+            
+            // Exclude pull requests, we only care about issues
+            const assignedIssuesCount = openIssues.data.filter(i => !i.pull_request).length;
+            
+            console.log(`User ${assignee} has ${assignedIssuesCount} open issues assigned.`);
+            
+            // If the user has more than 3 issues assigned (including the one just assigned)
+            if (assignedIssuesCount > 3) {
+              console.log(`Limit exceeded. Unassigning ${assignee}...`);
+              
+              // Unassign the user from this issue
+              await github.rest.issues.removeAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: [assignee]
+              });
+              
+              // Post a comment explaining why
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `⚠️ **Assignment Limit Exceeded**\n\nHi @${assignee}! To ensure everyone gets a fair chance to contribute during GSSoC, we enforce a strict limit of **3 open issues** per contributor.\n\nSince you already have 3 or more open issues assigned to you, you have been automatically unassigned from this one. Please finish or unassign yourself from your existing issues before claiming new ones. Thanks!`
+              });
+            }
