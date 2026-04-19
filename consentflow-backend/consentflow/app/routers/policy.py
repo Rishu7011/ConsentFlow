@@ -100,7 +100,16 @@ async def post_policy_scan(
     db_pool = _get_pool(request)
     redis_client = _get_redis(request)
 
-    # ── LLM reachability handled by LangChain fallbacks ────────────────────────
+    # ── Preflight: Ollama reachability check ───────────────────────────────────
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            tags_resp = await client.get(f"{settings.ollama_base_url.rstrip('/')}/api/tags")
+            tags_resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Ollama service unavailable: {exc}",
+        ) from exc
 
     auditor = PolicyAuditor(
         db_pool=db_pool,

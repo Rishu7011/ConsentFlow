@@ -259,11 +259,6 @@ async def analyze_policy(
     httpx.HTTPError  — Ollama unreachable or returned a non-2xx status.
     ValueError       — LLM response could not be parsed as JSON.
     """
-    from langchain_core.prompts import ChatPromptTemplate
-    from langchain_google_genai import ChatGoogleGenerativeAI
-    from langchain_mistralai import ChatMistralAI
-    from langchain_ollama import ChatOllama
-
     # Truncate before sending
     text = policy_text
     if len(text) > _MAX_POLICY_CHARS:
@@ -272,51 +267,33 @@ async def analyze_policy(
     user_message = f"Integration name: {integration_name}\n\nPolicy text:\n{text}"
 
     logger.info(
-        "PolicyAuditor: calling LLM chain (Mistral->Gemini->Ollama) integration=%r text_len=%d",
+        "PolicyAuditor: calling Ollama OpenAI endpoint integration=%r text_len=%d",
         integration_name,
         len(text),
     )
 
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        ("human", "{user_message}")
-    ])
+    ollama_url = settings.ollama_base_url.rstrip("/") + "/v1/chat/completions"
+    payload = {
+        "model": settings.ollama_model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message},
+        ],
+        "temperature": 0.1,
+        "response_format": {"type": "json_object"},
+    }
 
-    # 1. Setup Ollama Fallback Model
-    ollama_model = ChatOllama(
-        model=settings.ollama_model,
-        base_url=settings.ollama_base_url.rstrip("/"),
-        temperature=0.1,
-        format="json",
-    )
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(ollama_url, json=payload)
+        response.raise_for_status()
 
-    # 2. Setup Mistral Secondary Fallback Model
-    mistral_chain = ollama_model
-    if settings.mistral_api_key:
-        mistral_model = ChatMistralAI(
-            model=settings.mistral_model,
-            mistral_api_key=settings.mistral_api_key,
-            temperature=0.1,
-        )
-        mistral_chain = mistral_model.with_fallbacks([ollama_model])
-
-    # 3. Setup Gemini Primary Model
-    model_chain = mistral_chain
-    if settings.gemini_api_key:
-        gemini_model = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=settings.gemini_api_key,
-            temperature=0.1,
-        )
-        model_chain = gemini_model.with_fallbacks([mistral_chain])
-
-    chain = prompt_template | model_chain
-
+    envelope = response.json()
     try:
-        response = await chain.ainvoke({"user_message": user_message})
-        raw_content = response.content
-    except Exception as exc:
-        raise PolicyAnalysisError(f"All LLM fallbacks failed: {exc}") from exc
+        raw_content = envelope["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise ValueError(
+            "Ollama response did not include choices[0].message.content."
+        ) from exc
 
     logger.debug(
         "PolicyAuditor: raw LLM response (first 500 chars): %s",
@@ -439,6 +416,8 @@ class PolicyAuditor:
     async def scan(
         self,
         request,   # PolicyScanRequest — not imported to keep this module self-contained
+        db_pool=None,
+        redis_client=None,
         settings=None,
     ):
         """
@@ -456,9 +435,16 @@ class PolicyAuditor:
         dict
             Keys: scan_id, integration_name, overall_risk_level, findings,
                   findings_count, raw_summary, scanned_at, policy_url.
+
+        Notes
+        -----
+        db_pool is an optional compatibility override used by tests and legacy
+        call sites. redis_client is accepted for signature compatibility only.
+        When omitted, instance-injected clients are used.
         """
         from consentflow.app.config import settings as _settings
         _s = settings or _settings
+        pool = db_pool or self._db_pool
 
         # ── 1. Resolve text ───────────────────────────────────────────────────
         policy_url_str: Optional[str] = None
@@ -496,7 +482,7 @@ class PolicyAuditor:
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         """
 
-        async with self._db_pool.acquire() as conn:
+        async with pool.acquire() as conn:
             await conn.execute(
                 insert_scan_sql,
                 scan_id,
