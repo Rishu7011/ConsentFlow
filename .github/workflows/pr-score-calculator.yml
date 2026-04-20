@@ -1,0 +1,76 @@
+name: "GSSoC Score Calculator"
+
+on:
+  pull_request_target:
+    types: [closed]
+
+jobs:
+  calculate-score:
+    if: github.event.pull_request.merged == true
+    name: Calculate and Post PR Score
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Calculate Score
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name);
+            
+            // Only calculate if gssoc:approved is present
+            if (!labels.includes('gssoc:approved')) {
+              console.log("PR not marked as gssoc:approved. Skipping score calculation.");
+              return;
+            }
+            
+            let points = 0;
+            let levelFound = null;
+            
+            // Base difficulty points
+            if (labels.includes('level:beginner')) { points += 10; levelFound = 'Beginner'; }
+            else if (labels.includes('level:intermediate')) { points += 25; levelFound = 'Intermediate'; }
+            else if (labels.includes('level:advanced')) { points += 45; levelFound = 'Advanced'; }
+            else if (labels.includes('level:critical')) { points += 80; levelFound = 'Critical'; }
+            
+            // If no level is found, we still give a base score of 5
+            if (!levelFound) {
+              points += 5;
+              levelFound = 'Unclassified';
+            }
+            
+            // Quality Multipliers / Bonuses
+            let qualityBonus = 0;
+            if (labels.includes('quality:exceptional')) {
+              qualityBonus = Math.round(points * 0.5); // 50% bonus
+              points += qualityBonus;
+            } else if (labels.includes('quality:clean')) {
+              qualityBonus = Math.round(points * 0.2); // 20% bonus
+              points += qualityBonus;
+            }
+            
+            const contributor = pr.user.login;
+            
+            const message = `
+            🎉 **Congratulations @${contributor}! Your PR has been merged!** 🎉
+            
+            Thank you for your contribution to **ConsentFlow** for GSSoC '26! Here is your score breakdown for this PR:
+            
+            - **Difficulty Level:** ${levelFound}
+            - **Base Points:** ${points - qualityBonus}
+            - **Quality Bonus:** +${qualityBonus}
+            
+            ### 🏆 Total Points Awarded: **${points}**
+            
+            Keep up the fantastic work! 🚀
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: message
+            });
