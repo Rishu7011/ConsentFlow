@@ -435,6 +435,12 @@ class PolicyAuditor:
         dict
             Keys: scan_id, integration_name, overall_risk_level, findings,
                   findings_count, raw_summary, scanned_at, policy_url.
+
+        Notes
+        -----
+        db_pool is an optional compatibility override used by tests and legacy
+        call sites. redis_client is accepted for signature compatibility only.
+        When omitted, instance-injected clients are used.
         """
         from consentflow.app.config import settings as _settings
         _s = settings or _settings

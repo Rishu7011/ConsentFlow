@@ -175,13 +175,11 @@ def create_app() -> FastAPI:
         
         # Kafka: None means gracefully disabled (no broker configured),
         # which is acceptable on Render without a Kafka add-on.
-        kafka_state_present = hasattr(request.app.state, "kafka_producer")
-        kafka_producer = getattr(request.app.state, "kafka_producer", None)
-        if kafka_producer is not None:
+        _missing = object()
+        kafka_producer = getattr(request.app.state, "kafka_producer", _missing)
+        if kafka_producer is not _missing and kafka_producer is not None:
             kafka_status = "ok"
-        elif not kafka_state_present:
-            kafka_status = "disabled"
-        elif not settings.kafka_broker_url:
+        elif kafka_producer is _missing or not settings.kafka_broker_url:
             kafka_status = "disabled"
         else:
             kafka_status = "error"
