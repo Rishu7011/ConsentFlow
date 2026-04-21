@@ -1,0 +1,64 @@
+name: "Backend CI"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'consentflow-backend/**'
+      - '.github/workflows/ci-backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'consentflow-backend/**'
+      - '.github/workflows/ci-backend.yml'
+
+jobs:
+  backend-test:
+    name: Test & Lint Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: consentflow-backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "consentflow-backend/uv.lock"
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Cache spaCy model
+        id: cache-spacy
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: spacy-en_core_web_lg-${{ runner.os }}
+
+      - name: Download spaCy model
+        run: uv run python -m spacy download en_core_web_lg
+
+      - name: Run Ruff Linter
+        run: uv run ruff check . --exit-zero
+
+      - name: Run Pytest
+        run: uv run pytest --tb=short -q
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: consentflow
+          POSTGRES_PASSWORD: consentflow
+          POSTGRES_DB: consentflow
+          REDIS_HOST: localhost
+          KAFKA_BROKER_URL: localhost:29092
+          GEMINI_API_KEY: ""
+          MISTRAL_API_KEY: ""
+          OTEL_ENABLED: "false"
