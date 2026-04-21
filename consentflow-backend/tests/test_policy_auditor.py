@@ -56,6 +56,8 @@ def fake_settings():
     s = MagicMock()
     s.ollama_base_url = "http://localhost:11434"
     s.ollama_model = "qwen3:8b"
+    s.mistral_api_key = None  
+    s.gemini_api_key = None   
     return s
 
 
