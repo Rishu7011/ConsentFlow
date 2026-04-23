@@ -1,0 +1,51 @@
+name: "Welcome Bot"
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  welcome:
+    name: Greet First-Time Contributors
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Greet Contributor
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isPR = !!context.payload.pull_request;
+            const item = isPR ? context.payload.pull_request : context.payload.issue;
+            const author = item.user.login;
+            
+            // Check author association
+            const association = item.author_association;
+            const isFirstTime = ['NONE', 'FIRST_TIMER', 'FIRST_TIME_CONTRIBUTOR'].includes(association);
+            
+            if (isFirstTime) {
+              const type = isPR ? 'Pull Request' : 'Issue';
+              
+              const message = `
+              🎉 **Welcome to ConsentFlow, @${author}!** 🎉
+              
+              Thank you so much for opening your very first ${type} in our repository! We are thrilled to have you here, especially if you are participating in **GSSoC '26**.
+              
+              To ensure everything goes smoothly, please take a quick look at our [New Contributor Guide](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md).
+              
+              If you have any questions, feel free to ask. A maintainer will review your ${type} shortly. Happy coding! 🚀
+              `;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: item.number,
+                body: message
+              });
+            } else {
+              console.log(`User ${author} is already a known contributor (${association}). Skipping welcome message.`);
+            }
