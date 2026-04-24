@@ -180,25 +180,39 @@ class ConsentAwareDriftMonitor:
 
         tagged = df.copy()
 
-        def _get_status(user_id: Any) -> str:
+        # ── Batch consent lookup ───────────────────────────────────────────────
+        # Previously _get_status() was applied row-by-row via .map(), triggering
+        # one blocking DB/Redis round-trip per row — an N+1 query antipattern
+        # that freezes the worker on large DataFrames (100k rows = 100k queries).
+        #
+        # Fix: resolve all UNIQUE user IDs first in a single pass, build an
+        # in-memory lookup dict, then use it for a pure dict .map() with no I/O.
+        unique_ids = tagged[user_id_col].dropna().unique()
+
+        consent_map: dict[str, str] = {}
+        for uid in unique_ids:
             try:
-                consented = self._consent_fn(str(user_id), self._purpose)
-                return "granted" if consented else "revoked"
+                consented = self._consent_fn(str(uid), self._purpose)
+                consent_map[str(uid)] = "granted" if consented else "revoked"
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
                     "monitoring_gate: consent lookup error user_id=%s error=%s — treating as revoked",
-                    user_id,
+                    uid,
                     exc,
                 )
-                return "revoked"  # fail-closed
+                consent_map[str(uid)] = "revoked"  # fail-closed
 
-        tagged["_consent_status"] = tagged[user_id_col].map(_get_status)
+        # Pure in-memory map — no I/O per row
+        tagged["_consent_status"] = tagged[user_id_col].map(
+            lambda uid: consent_map.get(str(uid), "revoked")
+        )
 
         granted = (tagged["_consent_status"] == "granted").sum()
         revoked = (tagged["_consent_status"] == "revoked").sum()
         logger.info(
-            "tag_samples_with_consent: tagged %d rows — granted=%d  revoked=%d  purpose=%s",
+            "tag_samples_with_consent: tagged %d rows (%d unique users) — granted=%d  revoked=%d  purpose=%s",
             len(tagged),
+            len(unique_ids),
             granted,
             revoked,
             self._purpose,
