@@ -69,7 +69,7 @@ export default function DemoPage() {
         message_redacted: string;
         reply: string;
         trained: boolean;
-        memory_used?: unknown[];
+        memory_used?: string[];
         pii_detected?: string[];
         consent_status: "granted" | "revoked";
       }
