@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { BACKEND_URL } from "@/lib/constants";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const res = await fetch(`${BACKEND_URL}/health`, {
       headers: { "Content-Type": "application/json" },

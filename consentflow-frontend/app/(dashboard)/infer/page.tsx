@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -25,18 +26,19 @@ export default function InferPage() {
       const t0 = performance.now();
       try {
         const res = await api.post("/infer", { user_id: userId, purpose });
-        setMs(Math.round(performance.now() - t0));
-        return res.data;
-      } catch (error: any) {
-        setMs(Math.round(performance.now() - t0));
-        if (error.response && error.response.data) {
-          // ConsentMiddleware returns 403 with JSON when blocked
-          return error.response.data;
+        return { data: res.data, time: Math.round(performance.now() - t0) };
+      } catch (error: unknown) {
+        const axiosError = error as AxiosError;
+        if (axiosError?.response?.data) {
+          return { data: axiosError.response.data, time: Math.round(performance.now() - t0) };
         }
         throw error;
       }
     },
-    onSuccess: (data) => setResult(data),
+    onSuccess: (result) => {
+      setMs(result.time);
+      setResult(result.data);
+    },
     onError: () => toast.error("Request failed"),
   });
 

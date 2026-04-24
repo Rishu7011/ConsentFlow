@@ -61,7 +61,19 @@ export default function DemoPage() {
     api.get(`/chat/history?user_id=${demoUuid}`).then((res) => {
       const history = Array.isArray(res.data) ? res.data : res.data?.entries ?? [];
       const expanded: ChatMessage[] = [];
-      history.reverse().forEach((row: any) => {
+      interface ChatHistoryRow {
+        id: string;
+        event_time: string;
+        user_id: string;
+        message: string;
+        message_redacted: string;
+        reply: string;
+        trained: boolean;
+        memory_used?: unknown[];
+        pii_detected?: string[];
+        consent_status: "granted" | "revoked";
+      }
+      history.reverse().forEach((row: ChatHistoryRow) => {
         expanded.push({
           id: row.id + "-user",
           event_time: row.event_time,
