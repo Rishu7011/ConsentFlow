@@ -21,7 +21,7 @@ jobs:
             const assignee = context.payload.assignee.login;
             
             // Allow maintainers / org owners to have unlimited assignments
-            const maintainers = []; // Add maintainer GitHub usernames here if needed
+            const maintainers = ['Rishu7011']; // Add maintainer GitHub usernames here if needed
             if (maintainers.includes(assignee)) {
               console.log(`Assignee ${assignee} is a maintainer. Skipping limit check.`);
               return;
