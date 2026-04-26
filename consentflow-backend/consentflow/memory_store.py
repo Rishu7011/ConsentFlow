@@ -44,6 +44,8 @@ import unicodedata
 from collections.abc import Callable
 from typing import Any, NamedTuple
 
+from cachetools import LRUCache
+
 logger = logging.getLogger(__name__)
 
 # ── Clause splitter ────────────────────────────────────────────────────────────
@@ -317,8 +319,10 @@ def _cached_memories(user_id: str) -> list[str]:  # pragma: no cover
     return []  # never called directly; exists to satisfy lru_cache typing
 
 
-# We use a plain dict instead of lru_cache so we can mutate values imperatively.
-_memory_cache: dict[str, list[str]] = {}
+# We use cachetools.LRUCache instead of a plain dict to enforce a hard
+# eviction cap of 256 entries. A raw dict grows unboundedly and causes
+# Out-of-Memory crashes on memory-constrained deployments (e.g. Render 512 MB).
+_memory_cache: LRUCache = LRUCache(maxsize=256)
 
 
 def _cache_get(user_id: str) -> list[str] | None:
