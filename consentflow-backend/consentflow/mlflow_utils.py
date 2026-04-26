@@ -112,29 +112,42 @@ def search_runs_by_user(
 
     for exp_id in experiment_ids:
         try:
-            # Search for runs already tagged with this user (re-quarantine or prior flag)
-            runs_tagged = client.search_runs(
-                experiment_ids=[exp_id],
-                filter_string=f"tags.revoked_user = '{user_id}'",
-                max_results=500,
-            )
-            matched.extend(runs_tagged)
+            # ── Paginated search for directly-tagged runs ─────────────────────
+            # Previously capped at max_results=500 with no pagination, silently
+            # dropping older runs. Now follows page_token until exhausted.
+            page_token: str | None = None
+            while True:
+                page = client.search_runs(
+                    experiment_ids=[exp_id],
+                    filter_string=f"tags.revoked_user = '{user_id}'",
+                    max_results=500,
+                    page_token=page_token,
+                )
+                matched.extend(page)
+                page_token = getattr(page, "token", None)
+                if not page_token:
+                    break
 
-            # Also search for runs whose pipeline_run_id tag matches (broad catch)
-            # and cross-check dataset_gate step runs for this experiment
-            runs_gate = client.search_runs(
-                experiment_ids=[exp_id],
-                filter_string=f"tags.step = 'dataset_gate'",
-                max_results=500,
-            )
-            for run in runs_gate:
-                # Avoid duplicates with runs already found by tag
-                if any(r.info.run_id == run.info.run_id for r in matched):
-                    continue
-                # Check trained_users tag (comma-separated list)
-                trained_users_tag = run.data.tags.get("trained_users", "")
-                if user_id in [u.strip() for u in trained_users_tag.split(",") if u.strip()]:
-                    matched.append(run)
+            # ── Paginated search for dataset_gate step runs ───────────────────
+            gate_page_token: str | None = None
+            while True:
+                gate_page = client.search_runs(
+                    experiment_ids=[exp_id],
+                    filter_string="tags.step = 'dataset_gate'",
+                    max_results=500,
+                    page_token=gate_page_token,
+                )
+                for run in gate_page:
+                    # Avoid duplicates with runs already found by tag
+                    if any(r.info.run_id == run.info.run_id for r in matched):
+                        continue
+                    # Check trained_users tag (comma-separated list)
+                    trained_users_tag = run.data.tags.get("trained_users", "")
+                    if user_id in [u.strip() for u in trained_users_tag.split(",") if u.strip()]:
+                        matched.append(run)
+                gate_page_token = getattr(gate_page, "token", None)
+                if not gate_page_token:
+                    break
 
         except MlflowException as exc:
             logger.warning(
