@@ -82,7 +82,7 @@ class ConsentMiddleware(BaseHTTPMiddleware):
     # ── User-ID extraction ─────────────────────────────────────────────────────
 
     @staticmethod
-    async def _extract_user_id(request: Request) -> str | None:
+    async def _extract_user_id(request: Request) -> tuple[str | None, bytes]:
         """
         Try to resolve a user_id from the request.
 
@@ -91,12 +91,18 @@ class ConsentMiddleware(BaseHTTPMiddleware):
         1. ``X-User-ID`` header   (fast, no body read)
         2. JSON body ``user_id``  (POST / PUT requests with JSON payload)
 
-        Returns ``None`` when neither source provides a value.
+        Returns
+        -------
+        Tuple of (user_id_or_None, body_bytes_or_empty).
+        ``body_bytes`` is the raw body that was consumed — callers MUST
+        re-inject it via ``request._receive`` so downstream handlers can
+        still read the request body (``BaseHTTPMiddleware`` exhausts the
+        ASGI stream on ``await request.body()``).
         """
-        # 1. Header
+        # 1. Header — preferred: avoids touching the ASGI stream at all
         header_uid = request.headers.get("X-User-ID")
         if header_uid:
-            return header_uid.strip()
+            return header_uid.strip(), b""
 
         # 2. JSON body — only try on methods that typically carry a body
         if request.method in ("POST", "PUT", "PATCH"):
@@ -108,11 +114,12 @@ class ConsentMiddleware(BaseHTTPMiddleware):
                     if uid:
                         # Stash the payload for later use (e.g. dynamic purpose)
                         request.state.payload = payload
-                        return str(uid).strip()
+                        return str(uid).strip(), body_bytes
+                return None, body_bytes  # body present but no user_id field
             except (json.JSONDecodeError, Exception):  # noqa: BLE001
                 pass  # malformed body — fall through to 400
 
-        return None
+        return None, b""
 
     # ── Middleware entry point ─────────────────────────────────────────────────
 
@@ -125,7 +132,15 @@ class ConsentMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # ── 1. Extract user_id ─────────────────────────────────────────────
-        user_id = await self._extract_user_id(request)
+        user_id, body_bytes = await self._extract_user_id(request)
+
+        # Re-inject the consumed body so downstream route handlers can still
+        # read it. BaseHTTPMiddleware exhausts the ASGI receive stream on
+        # `await request.body()`, so we replay it via a closure override.
+        if body_bytes:
+            async def _replay_receive(body: bytes = body_bytes):
+                return {"type": "http.request", "body": body, "more_body": False}
+            request._receive = _replay_receive  # type: ignore[assignment]
 
         if not user_id:
             logger.warning(
