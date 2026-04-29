@@ -15,13 +15,15 @@ class ConsentStatus(str, Enum):
 
 # ── Request models ─────────────────────────────────────────────────────────────
 
-
+class ConsentPurpose(str, Enum):
+    model_training = "model_training"
+    analytics      = "analytics"
 class ConsentUpsertRequest(BaseModel):
     """Payload for POST /consent — grant or revoke a consent record."""
 
     user_id: UUID = Field(..., description="UUID of the user")
     data_type: str = Field(..., min_length=1, max_length=128, description="Category of data (e.g. 'pii', 'usage')")
-    purpose: str = Field(..., min_length=1, max_length=256, description="Processing purpose (e.g. 'analytics')")
+    purpose: ConsentPurpose = Field(..., description="Processing purpose")
     status: ConsentStatus = Field(..., description="'granted' or 'revoked'")
 
 
