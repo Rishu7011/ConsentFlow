@@ -202,3 +202,18 @@ class PolicyScanListItem(BaseModel):
     scanned_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Step 10: Browser Extension models ────────────────────────────────────────
+
+
+class ExtensionAnonymizePlaceholderRequest(BaseModel):
+    """
+    Sent by the browser extension to /api/v1/extension/anonymize.
+
+    entity_refs are placeholder tokens like "[PERSON_1]" — NOT real PII values.
+    The server only ever sees these tokens; real PII never leaves the browser.
+    """
+
+    entity_refs: list[str]
+    session_id: str
