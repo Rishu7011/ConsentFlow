@@ -64,6 +64,7 @@ function App() {
         }
 
         setState({ sessionId, counts, backendUrl, disabledSites, currentHostname, isOnline });
+        setSiteDisabled(Boolean(currentHostname && disabledSites.includes(currentHostname)));
         setUrlDraft(backendUrl);
       } catch (e) {
         // Fallback for development outside extension
@@ -98,6 +99,26 @@ function App() {
   const clearVault = () => {
     setState({ counts: {} });
   };
+
+  const toggleSiteDisabled = useCallback(async () => {
+    const hostname = state.currentHostname;
+    if (!hostname) return;
+
+    const nextDisabled = !siteDisabled;
+    setSiteDisabled(nextDisabled);
+
+    const nextList = nextDisabled
+      ? Array.from(new Set([...(state.disabledSites ?? []), hostname]))
+      : (state.disabledSites ?? []).filter((h) => h !== hostname);
+
+    setState({ disabledSites: nextList });
+    await chrome.storage.local.set({ disabledSites: nextList }).catch(() => {});
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'SITE_DISABLED', hostname, disabled: nextDisabled }).catch(() => {});
+    }
+  }, [siteDisabled, state.currentHostname, state.disabledSites]);
 
   const saveBackend = async () => {
     let display = urlDraft.trim();
@@ -202,7 +223,7 @@ function App() {
         <div className="footer-row">
           <button 
             className="disable-btn" 
-            onClick={() => setSiteDisabled(!siteDisabled)}
+            onClick={toggleSiteDisabled}
             style={{
               color: siteDisabled ? 'var(--cf-red)' : '',
               borderColor: siteDisabled ? 'rgba(239,68,68,0.3)' : ''

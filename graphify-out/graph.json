@@ -5323,7 +5323,7 @@
       "label": "attachAndBind()",
       "file_type": "code",
       "source_file": "consentflow-extension/src/content/index.ts",
-      "source_location": "L141",
+      "source_location": "L174",
       "id": "content_index_attachandbind",
       "community": 6,
       "norm_label": "attachandbind()"
@@ -5332,7 +5332,7 @@
       "label": "loadConsentProfile()",
       "file_type": "code",
       "source_file": "consentflow-extension/src/content/index.ts",
-      "source_location": "L170",
+      "source_location": "L206",
       "id": "content_index_loadconsentprofile",
       "community": 6,
       "norm_label": "loadconsentprofile()"
@@ -5557,7 +5557,7 @@
       "label": "clearVault()",
       "file_type": "code",
       "source_file": "consentflow-extension/src/popup/App.tsx",
-      "source_location": "L98",
+      "source_location": "L99",
       "id": "popup_app_clearvault",
       "community": 1,
       "norm_label": "clearvault()"
@@ -5566,7 +5566,7 @@
       "label": "saveBackend()",
       "file_type": "code",
       "source_file": "consentflow-extension/src/popup/App.tsx",
-      "source_location": "L102",
+      "source_location": "L123",
       "id": "popup_app_savebackend",
       "community": 1,
       "norm_label": "savebackend()"
@@ -18464,9 +18464,9 @@
       "source_file": "consentflow-extension/src/content/index.ts",
       "source_location": "L66",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "consentflow_extension_src_content_index_ts",
-      "target": "content_index_startstatuspillwatchdog",
-      "confidence_score": 1.0
+      "target": "content_index_startstatuspillwatchdog"
     },
     {
       "relation": "contains",
@@ -18538,9 +18538,9 @@
       "source_file": "consentflow-extension/src/content/index.ts",
       "source_location": "L82",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "content_index_main",
-      "target": "content_index_startstatuspillwatchdog",
-      "confidence_score": 1.0
+      "target": "content_index_startstatuspillwatchdog"
     },
     {
       "relation": "calls",
@@ -18552,6 +18552,17 @@
       "confidence_score": 1.0,
       "source": "content_index_main",
       "target": "content_index_loadconsentprofile"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "consentflow-extension/src/content/index.ts",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "content_index_main",
+      "target": "platforms_index_getplatformconfig"
     },
     {
       "relation": "calls",
@@ -18570,10 +18581,10 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "consentflow-extension/src/content/index.ts",
-      "source_location": "L37",
+      "source_location": "L180",
       "weight": 1.0,
-      "source": "content_index_main",
-      "target": "platforms_index_getplatformconfig"
+      "source": "content_index_attachandbind",
+      "target": "content_reversemapper_attachreversemapper"
     },
     {
       "relation": "calls",
@@ -20996,5 +21007,5 @@
       "source_file": "consentflow-backend/docker-compose.yml"
     }
   ],
-  "built_at_commit": "2950baec71b43e9c0a1e3231aff6ec3dd41fe322"
+  "built_at_commit": "6bbc20f1eef1ca56f9a36715652e4f2f3f52d0bf"
 }

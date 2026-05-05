@@ -90,8 +90,28 @@ async function main(): Promise<void> {
   // 3. Load consent profile → build activeEnabledTypes Set.
   const activeEnabledTypes = await loadConsentProfile();
 
-  // 4. Attach interceptor and reverse mapper.
-  let cleanupInterceptor = await attachAndBind(platformConfig, sessionId, activeEnabledTypes);
+  const currentHostname = location.hostname;
+  const local = await chrome.storage.local.get(['disabledSites']).catch(() => ({} as { disabledSites?: string[] }));
+  let siteDisabled = Boolean(currentHostname && (local.disabledSites ?? []).includes(currentHostname));
+
+  let cleanupAll: (() => void) | null = null;
+
+  const applySiteDisabled = async (disabled: boolean) => {
+    siteDisabled = disabled;
+    if (cleanupAll) {
+      cleanupAll();
+      cleanupAll = null;
+    }
+    if (siteDisabled) {
+      setStatusPill('ConsentFlow disabled on this site');
+      return;
+    }
+    setStatusPill('ConsentFlow active');
+    cleanupAll = await attachAndBind(platformConfig, sessionId, activeEnabledTypes);
+  };
+
+  // 4. Attach interceptor and reverse mapper (unless disabled).
+  await applySiteDisabled(siteDisabled);
 
   // 5. SPA navigation watch — re-attach after URL changes (debounced 500 ms).
   let lastUrl = location.href;
@@ -102,8 +122,10 @@ async function main(): Promise<void> {
     debounceTimer = setTimeout(async () => {
       if (location.href === lastUrl) return;
       lastUrl = location.href;
-      cleanupInterceptor();
-      cleanupInterceptor = await attachAndBind(platformConfig, sessionId, activeEnabledTypes);
+      if (!siteDisabled) {
+        if (cleanupAll) cleanupAll();
+        cleanupAll = await attachAndBind(platformConfig, sessionId, activeEnabledTypes);
+      }
     }, 500);
   };
 
@@ -120,14 +142,25 @@ async function main(): Promise<void> {
     type: string;
     entityType?: string;
     enabled?: boolean;
+    hostname?: string;
+    disabled?: boolean;
   }) => {
-    if (message.type !== 'CONSENT_UPDATED') return;
-    const { entityType, enabled } = message;
-    if (!entityType || enabled === undefined) return;
-    if (enabled) {
-      activeEnabledTypes.add(entityType);
-    } else {
-      activeEnabledTypes.delete(entityType);
+    if (message.type === 'CONSENT_UPDATED') {
+      const { entityType, enabled } = message;
+      if (!entityType || enabled === undefined) return;
+      if (enabled) {
+        activeEnabledTypes.add(entityType);
+      } else {
+        activeEnabledTypes.delete(entityType);
+      }
+      return;
+    }
+
+    if (message.type === 'SITE_DISABLED') {
+      // Optional hostname gating; if absent, assume current site.
+      if (message.hostname && message.hostname !== location.hostname) return;
+      if (message.disabled === undefined) return;
+      void applySiteDisabled(message.disabled);
     }
   });
 }
@@ -144,18 +177,21 @@ async function attachAndBind(
   activeEnabledTypes: Set<string>,
 ): Promise<() => void> {
   try {
+    const reverseCleanup = attachReverseMapper(platformConfig, sessionId);
     const cleanup = await attachInterceptor(
       platformConfig, 
       sessionId, 
       (count, sid) => {
-        attachReverseMapper(platformConfig, sid);
         setStatusPill(`Masked ${count} item(s)`);
         setTimeout(() => setStatusPill('ConsentFlow active'), 2000);
         chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count }).catch(() => {/* offline */});
       },
       activeEnabledTypes
     );
-    return cleanup;
+    return () => {
+      cleanup();
+      reverseCleanup();
+    };
   } catch (err) {
     console.warn('[ConsentFlow] Failed to attach interceptor:', err);
     setStatusPill('ConsentFlow error (see console)');

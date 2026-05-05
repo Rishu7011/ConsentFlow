@@ -1,16 +1,16 @@
 # Graph Report - ConsentFlow  (2026-05-06)
 
 ## Corpus Check
-- 119 files · ~69,998 words
+- 119 files · ~70,194 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 836 nodes · 1280 edges · 53 communities detected
-- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 144 edges (avg confidence: 0.77)
+- 836 nodes · 1281 edges · 53 communities detected
+- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 145 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2950baec`
+- Built from commit: `6bbc20f1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
