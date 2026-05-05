@@ -215,6 +215,10 @@
     "mtime": 1778002293.9280977,
     "hash": "3cc5d4a6e4d1fe8b343b8f2f219a9c6b"
   },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\scripts\\generate-icons.mjs": {
+    "mtime": 1778016730.8123472,
+    "hash": "2595a2a8989e554ba843c59232765988"
+  },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\vitest.setup.ts": {
     "mtime": 1778012705.7106457,
     "hash": "b1cf746d07efd392d60da62966c26f1f"
@@ -223,9 +227,17 @@
     "mtime": 1778010491.8413002,
     "hash": "05c6ac4f4839e6695942143a58e66290"
   },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\historyMasker.test.ts": {
+    "mtime": 1778016550.6296391,
+    "hash": "abf43d0eb45470a0c4a4f192a98bdfdc"
+  },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\historyMasker.ts": {
+    "mtime": 1778016544.858523,
+    "hash": "e66700f91023f0464d67089212b8f777"
+  },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\index.ts": {
-    "mtime": 1778015886.3624895,
-    "hash": "9c4d61deedc3a5a32f062366ca961f46"
+    "mtime": 1778016561.299457,
+    "hash": "d9bd74ba5096b8693ff9515ec453f0e3"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\content\\interceptor.ts": {
     "mtime": 1778014976.996313,
@@ -252,8 +264,8 @@
     "hash": "bb83ebb05d9aea2dfde0cac9634e59de"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\popup\\App.tsx": {
-    "mtime": 1778015872.850595,
-    "hash": "1478f05cc986c373598059862bea9630"
+    "mtime": 1778016748.652982,
+    "hash": "c8719431dd0a836e219e2775bcc34ed9"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\utils\\dummyGenerator.test.ts": {
     "mtime": 1778013260.9059675,
@@ -268,8 +280,8 @@
     "hash": "839a7c0c953580da4de3abbc03b29e3c"
   },
   "D:\\Project\\ConsentFlow\\consentflow-extension\\src\\vault\\vault.ts": {
-    "mtime": 1778009416.4492912,
-    "hash": "069f64765dfdf8e934125265fc92c1c6"
+    "mtime": 1778016261.827239,
+    "hash": "3dcf749527d691de0dd8b559b27d22ea"
   },
   "D:\\Project\\ConsentFlow\\consentflow-frontend\\eslint.config.mjs": {
     "mtime": 1777972957.668433,
@@ -554,6 +566,26 @@
   "D:\\Project\\ConsentFlow\\consentflow-frontend\\README.md": {
     "mtime": 1777972957.6475768,
     "hash": "9162add00befbcdb432430f405c4ad8d"
+  },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\public\\icons\\icon.svg": {
+    "mtime": 1778016724.5144055,
+    "hash": "62fcb288e06e68d67ad85ad07d9520a9"
+  },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\public\\icons\\icon128.png": {
+    "mtime": 1778016764.217888,
+    "hash": "7e3689f20b3b85605e74554773cde6b1"
+  },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\public\\icons\\icon16.png": {
+    "mtime": 1778016764.217888,
+    "hash": "7e4a1bfc85a695cf53d14ab26879396a"
+  },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\public\\icons\\icon32.png": {
+    "mtime": 1778016764.217888,
+    "hash": "6fc392944a7accefa814412ab163e156"
+  },
+  "D:\\Project\\ConsentFlow\\consentflow-extension\\public\\icons\\icon48.png": {
+    "mtime": 1778016764.217888,
+    "hash": "7384639b500ff9e1aeee1a9e5de6228b"
   },
   "D:\\Project\\ConsentFlow\\consentflow-frontend\\public\\file.svg": {
     "mtime": 1777972957.6742985,

@@ -15,6 +15,7 @@
 import { getPlatformConfig } from './platforms/index';
 import { attachInterceptor } from './interceptor';
 import { attachReverseMapper } from './reverseMapper';
+import { attachHistoryMasker } from './historyMasker';
 import { SUPPORTED_TYPES } from '../utils/dummyGenerator';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -91,10 +92,14 @@ async function main(): Promise<void> {
   const activeEnabledTypes = await loadConsentProfile();
 
   const currentHostname = location.hostname;
-  const local = await chrome.storage.local.get(['disabledSites']).catch(() => ({} as { disabledSites?: string[] }));
+  const local = await chrome.storage.local.get(['disabledSites', 'historyMaskLimit']).catch(() => (
+    {} as { disabledSites?: string[]; historyMaskLimit?: number | 'all' }
+  ));
   let siteDisabled = Boolean(currentHostname && (local.disabledSites ?? []).includes(currentHostname));
+  let historyMaskLimit: number | 'all' = local.historyMaskLimit ?? 'all';
 
   let cleanupAll: (() => void) | null = null;
+  let cleanupHistory: (() => void) | null = null;
 
   const applySiteDisabled = async (disabled: boolean) => {
     siteDisabled = disabled;
@@ -102,11 +107,16 @@ async function main(): Promise<void> {
       cleanupAll();
       cleanupAll = null;
     }
+    if (cleanupHistory) {
+      cleanupHistory();
+      cleanupHistory = null;
+    }
     if (siteDisabled) {
       setStatusPill('ConsentFlow disabled on this site');
       return;
     }
     setStatusPill('ConsentFlow active');
+    cleanupHistory = attachHistoryMasker({ limit: historyMaskLimit });
     cleanupAll = await attachAndBind(platformConfig, sessionId, activeEnabledTypes);
   };
 
@@ -144,6 +154,7 @@ async function main(): Promise<void> {
     enabled?: boolean;
     hostname?: string;
     disabled?: boolean;
+    limit?: number | 'all';
   }) => {
     if (message.type === 'CONSENT_UPDATED') {
       const { entityType, enabled } = message;
@@ -161,6 +172,15 @@ async function main(): Promise<void> {
       if (message.hostname && message.hostname !== location.hostname) return;
       if (message.disabled === undefined) return;
       void applySiteDisabled(message.disabled);
+    }
+
+    if (message.type === 'HISTORY_MASK_LIMIT_UPDATED') {
+      if (message.limit === undefined) return;
+      historyMaskLimit = message.limit;
+      if (siteDisabled) return;
+      // Re-attach history masker with new config.
+      if (cleanupHistory) cleanupHistory();
+      cleanupHistory = attachHistoryMasker({ limit: historyMaskLimit });
     }
   });
 }
