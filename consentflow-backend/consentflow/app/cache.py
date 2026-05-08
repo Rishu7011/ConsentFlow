@@ -25,6 +25,8 @@ def _consent_key(user_id: UUID | str, purpose: str) -> str:
 
 # ── Lifecycle ──────────────────────────────────────────────────────────────────
 
+import asyncio
+
 async def create_redis_client() -> Redis:
     client: Redis = aioredis.from_url(
         settings.redis_url,
@@ -32,10 +34,23 @@ async def create_redis_client() -> Redis:
         decode_responses=True,
         socket_connect_timeout=5,
     )
-    # Validate connection immediately
-    await client.ping()
-    logger.info("Redis client connected: %s", settings.redis_url)
-    return client
+    retries = 15
+    for attempt in range(1, retries + 1):
+        try:
+            # Validate connection immediately
+            await client.ping()
+            logger.info("Redis client connected: %s", settings.redis_url)
+            return client
+        except Exception as e:
+            if attempt < retries:
+                logger.warning(
+                    "Redis connection failed: %s. Retrying in 2s (attempt %d/%d)...",
+                    e, attempt, retries
+                )
+                await asyncio.sleep(2)
+            else:
+                logger.error("Failed to connect to Redis after %d attempts.", retries)
+                raise
 
 
 async def close_redis_client(client: Redis) -> None:
