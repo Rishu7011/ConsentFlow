@@ -124,9 +124,18 @@ def create_app() -> FastAPI:
     )
 
     # ── Middlewares ───────────────────────────────────────────────────────────
+    # In production set CORS_ALLOWED_ORIGINS to your frontend URL(s).
+    # Defaults to localhost for local development.
+    import os  # noqa: PLC0415
+    _cors_origins_raw = os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:3001",
+    )
+    _cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://localhost:3001"],
+        allow_origins=_cors_origins,
         allow_origin_regex=r".*",
         allow_credentials=True,
         allow_methods=["*"],
@@ -164,14 +173,24 @@ def create_app() -> FastAPI:
         pg_status = await check_postgres(request.app.state.db_pool)
         redis_status = await check_redis(request.app.state.redis_client)
         
-        # Simple Kafka check based on connection state
-        # (aiokafka doesn't have a simple ping, but we check if the object exists)
-        kafka_status = "ok" if request.app.state.kafka_producer else "error"
-        
+        # Kafka: None means gracefully disabled (no broker configured),
+        # which is acceptable on Render without a Kafka add-on.
+        kafka_producer = request.app.state.kafka_producer
+        if kafka_producer is not None:
+            kafka_status = "ok"
+        elif not settings.kafka_broker_url:
+            kafka_status = "disabled"
+        else:
+            kafka_status = "error"
+
         # OTel is based on configuration
         otel_status = "ok" if getattr(settings, "otel_enabled", False) else "disabled"
-        
-        overall = "ok" if pg_status == "ok" and redis_status == "ok" and kafka_status == "ok" else "degraded"
+
+        overall = (
+            "ok"
+            if pg_status == "ok" and redis_status == "ok" and kafka_status in ("ok", "disabled")
+            else "degraded"
+        )
         return HealthResponse(
             status=overall,
             postgres=pg_status,

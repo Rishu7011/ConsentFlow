@@ -28,7 +28,7 @@ import logging
 from typing import Any
 
 from aiokafka import AIOKafkaProducer
-from aiokafka.errors import KafkaError
+from aiokafka.errors import KafkaConnectionError, KafkaError
 
 from consentflow.app.config import settings
 
@@ -37,13 +37,24 @@ logger = logging.getLogger(__name__)
 # ── Lifecycle ──────────────────────────────────────────────────────────────────
 
 
-async def create_kafka_producer() -> AIOKafkaProducer:
+async def create_kafka_producer() -> AIOKafkaProducer | None:
     """
     Instantiate and start an AIOKafkaProducer.
 
     The producer serialises values as UTF-8 encoded JSON.
     Keys are UTF-8 encoded strings (user_id).
+
+    Returns None if KAFKA_BROKER_URL is blank or the broker is
+    unreachable, so the app can start without Kafka (e.g. on Render
+    without a Kafka add-on configured).
     """
+    if not settings.kafka_broker_url:
+        logger.warning(
+            "KAFKA_BROKER_URL is not set — Kafka disabled. "
+            "Consent-revocation events will NOT be published."
+        )
+        return None
+
     producer: AIOKafkaProducer = AIOKafkaProducer(
         bootstrap_servers=settings.kafka_broker_url,
         # Serialise values as JSON bytes  ─────────────────────────────────────
@@ -56,7 +67,15 @@ async def create_kafka_producer() -> AIOKafkaProducer:
         retry_backoff_ms=200,
         request_timeout_ms=10_000,
     )
-    await producer.start()
+    try:
+        await producer.start()
+    except KafkaConnectionError as exc:
+        logger.warning(
+            "Kafka broker unreachable (%s) — Kafka disabled. "
+            "Consent-revocation events will NOT be published.",
+            exc,
+        )
+        return None
     logger.info(
         "Kafka producer started — broker=%s  topic=%s",
         settings.kafka_broker_url,
@@ -65,8 +84,10 @@ async def create_kafka_producer() -> AIOKafkaProducer:
     return producer
 
 
-async def close_kafka_producer(producer: AIOKafkaProducer) -> None:
-    """Flush pending messages and stop the producer."""
+async def close_kafka_producer(producer: AIOKafkaProducer | None) -> None:
+    """Flush pending messages and stop the producer (no-op if producer is None)."""
+    if producer is None:
+        return
     await producer.stop()
     logger.info("Kafka producer stopped")
 
@@ -75,7 +96,7 @@ async def close_kafka_producer(producer: AIOKafkaProducer) -> None:
 
 
 async def publish_revocation(
-    producer: AIOKafkaProducer,
+    producer: AIOKafkaProducer | None,
     user_id: str,
     purpose: str,
     timestamp: str,
@@ -95,6 +116,14 @@ async def publish_revocation(
     KafkaError  If the broker rejects or cannot reach the message.  The caller
                 is expected to catch this and apply its own fallback strategy.
     """
+    if producer is None:
+        logger.warning(
+            "Kafka unavailable — skipping publish for user_id=%s purpose=%s",
+            user_id,
+            purpose,
+        )
+        return
+
     message: dict[str, Any] = {
         "event": "consent.revoked",
         "user_id": user_id,

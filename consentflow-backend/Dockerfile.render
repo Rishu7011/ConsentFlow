@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1
+# ── Render-optimised Dockerfile ───────────────────────────────
+# Differences from the local docker-compose Dockerfile:
+#  • Uses $PORT env var (Render injects this at runtime)
+#  • CMD uses shell form so $PORT is expanded
+#  • Single worker (Render free tier is memory-constrained)
+
+FROM python:3.12-slim
+
+# System deps for asyncpg (gcc + libpq) and healthcheck (curl)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        libpq-dev \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+WORKDIR /app
+
+# Cache dependency layer separately from source
+COPY pyproject.toml uv.lock README.md ./
+
+ENV UV_HTTP_TIMEOUT=300
+
+# Install production deps (no project source yet — cache layer)
+RUN uv sync --no-dev --no-install-project
+
+# Copy application source
+COPY consentflow/ ./consentflow/
+
+# Install the project itself
+RUN uv sync --no-dev
+
+# Download spaCy model required by Presidio anonymizer
+RUN uv pip install \
+    "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl"
+
+# Render assigns $PORT dynamically — default 8000 for local use
+ENV PORT=8000
+
+EXPOSE $PORT
+
+# Shell form so $PORT is evaluated at container runtime
+CMD uv run uvicorn consentflow.app.main:app \
+    --host 0.0.0.0 \
+    --port $PORT \
+    --workers 1
