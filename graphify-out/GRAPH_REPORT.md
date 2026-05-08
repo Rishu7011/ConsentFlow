@@ -1,16 +1,16 @@
-# Graph Report - ConsentFlow  (2026-05-06)
+# Graph Report - ConsentFlow  (2026-05-08)
 
 ## Corpus Check
-- 122 files · ~68,642 words
+- 123 files · ~70,370 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 842 nodes · 1288 edges · 49 communities detected
+- 844 nodes · 1290 edges · 49 communities detected
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 146 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1288afb6`
+- Built from commit: `04f7b732`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -45,7 +45,7 @@
 - [[_COMMUNITY_Community 27|Community 27]]
 - [[_COMMUNITY_Community 28|Community 28]]
 - [[_COMMUNITY_Community 29|Community 29]]
-- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 33|Community 33]]
 - [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
@@ -113,12 +113,12 @@ Cohesion: 0.11
 Nodes (31): _parse_event(), QuarantineRecord, consentflow/training_gate.py — Kafka consumer that enforces consent at training, Handle a single revocation event for *user_id*.          Steps         -----, Continuously consume ``consent.revoked`` events until cancelled.          This, Create a real ``AIOKafkaConsumer`` and run the training gate loop.      Import, An immutable record of one quarantine action.      Attributes     ----------, Asynchronous Kafka consumer that quarantines MLflow runs on consent revocation. (+23 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.09
-Nodes (33): main(), consentflow/otel_inference_gate.py — OTel-instrumented inference gate helper (St, Insert one row into ``audit_log``.  Errors are logged, never raised., Record an OTel span and audit log row for one inference gate decision.      Pa, traced_inference_check(), _write_audit_row(), consentflow/otel_monitoring_gate.py — OTel-instrumented monitoring gate wrapper, Insert one row into ``audit_log``.  Errors are logged, never raised. (+25 more)
-
-### Community 5 - "Community 5"
 Cohesion: 0.08
 Nodes (28): analyze_policy(), _compute_max_severity(), fetch_policy_text(), PolicyAnalysisError, PolicyAuditor, PolicyFetchError, consentflow/policy_auditor.py — Gate 05: Policy Auditor  Fetches and analyses, Return plain text extracted from an HTML document. (+20 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.09
+Nodes (33): main(), consentflow/otel_inference_gate.py — OTel-instrumented inference gate helper (St, Insert one row into ``audit_log``.  Errors are logged, never raised., Record an OTel span and audit log row for one inference gate decision.      Pa, traced_inference_check(), _write_audit_row(), consentflow/otel_monitoring_gate.py — OTel-instrumented monitoring gate wrapper, Insert one row into ``audit_log``.  Errors are logged, never raised. (+25 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.08
@@ -157,12 +157,12 @@ Cohesion: 0.13
 Nodes (17): BaseHTTPMiddleware, ConsentMiddleware, _extract_user_id(), consentflow/inference_gate.py — FastAPI middleware for inference-time consent en, Intercept the request, enforce consent, then forward or reject., ASGI middleware that enforces inference-time consent.      Parameters     ---, Return True iff *path* falls under a protected prefix., _check_postgres() (+9 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.13
-Nodes (15): consentflow/otel_dataset_gate.py — OTel-instrumented dataset gate wrapper (Step, Insert one row into ``audit_log``.  Errors are logged, never raised., OTel-instrumented wrapper around ``register_dataset_with_consent_check``., traced_register_dataset(), _write_audit_row(), consentflow/otel_training_gate.py — OTel-instrumented training gate helper (Step, Record an OTel span and audit log row for a training gate quarantine event., Insert one row into ``audit_log``.  Errors are logged, never raised. (+7 more)
+Cohesion: 0.15
+Nodes (19): close_kafka_producer(), create_kafka_producer(), publish_revocation(), kafka_producer.py — Async Kafka producer for consent-revocation events.  Lifec, Publish a ``consent.revoked`` event to Kafka.      Parameters     ----------, Instantiate and start an AIOKafkaProducer.      The producer serialises values, Flush pending messages and stop the producer., Publish a ``consent.revoked`` event to Kafka.      Parameters     ---------- (+11 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.17
-Nodes (17): close_kafka_producer(), create_kafka_producer(), publish_revocation(), kafka_producer.py — Async Kafka producer for consent-revocation events.  Lifec, Instantiate and start an AIOKafkaProducer.      The producer serialises values, Flush pending messages and stop the producer., Publish a ``consent.revoked`` event to Kafka.      Parameters     ----------, _apply_revocation_to_db() (+9 more)
+Cohesion: 0.13
+Nodes (15): consentflow/otel_dataset_gate.py — OTel-instrumented dataset gate wrapper (Step, Insert one row into ``audit_log``.  Errors are logged, never raised., OTel-instrumented wrapper around ``register_dataset_with_consent_check``., traced_register_dataset(), _write_audit_row(), consentflow/otel_training_gate.py — OTel-instrumented training gate helper (Step, Record an OTel span and audit log row for a training gate quarantine event., Insert one row into ``audit_log``.  Errors are logged, never raised. (+7 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.14
@@ -237,14 +237,14 @@ Cohesion: 0.67
 Nodes (3): Application Frame Outline, Browser Window Icon, Title Bar Control Dots
 
 ## Knowledge Gaps
-- **226 isolated node(s):** `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan`, `Return a copy of *record* with all string-valued PII fields masked.      Non-s`, `Recursively anonymize a value (dict, list, str, or other).`, `Detect and mask PII in a single text string.      Returns the anonymized strin`, `Summary of a single dataset registration run.` (+221 more)
+- **228 isolated node(s):** `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan`, `Return a copy of *record* with all string-valued PII fields masked.      Non-s`, `Recursively anonymize a value (dict, list, str, or other).`, `Detect and mask PII in a single text string.      Returns the anonymized strin`, `Summary of a single dataset registration run.` (+223 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `str` connect `Community 4` to `Community 0`, `Community 3`, `Community 5`, `Community 7`, `Community 10`, `Community 13`, `Community 14`, `Community 16`, `Community 17`, `Community 19`, `Community 20`?**
+- **Why does `str` connect `Community 5` to `Community 0`, `Community 3`, `Community 4`, `Community 7`, `Community 10`, `Community 13`, `Community 14`, `Community 15`, `Community 17`, `Community 19`, `Community 20`?**
   _High betweenness centrality (0.328) - this node is a cross-community bridge._
 - **Why does `chat_message()` connect `Community 0` to `Community 8`?**
   _High betweenness centrality (0.150) - this node is a cross-community bridge._
@@ -257,4 +257,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 2 inferred relationships involving `FakeKafkaConsumer` (e.g. with `QuarantineRecord` and `TrainingGateConsumer`) actually correct?**
   _`FakeKafkaConsumer` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `consentflow/anonymizer.py — Full Presidio PII detection + anonymisation.  Plan`, `Return a copy of *record* with all string-valued PII fields masked.      Non-s`, `Recursively anonymize a value (dict, list, str, or other).` to the rest of the system?**
-  _226 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _228 weakly-connected nodes found - possible documentation gaps or missing edges._

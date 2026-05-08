@@ -69,7 +69,7 @@
       "source_file": "consentflow-backend/seed_db.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_seed_db_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "seed_db.py"
     },
     {
@@ -78,7 +78,7 @@
       "source_file": "consentflow-backend/seed_db.py",
       "source_location": "L21",
       "id": "consentflow_backend_seed_db_main",
-      "community": 4,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -420,7 +420,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "",
       "id": "runtimeerror",
-      "community": 5,
+      "community": 4,
       "norm_label": "runtimeerror"
     },
     {
@@ -1149,7 +1149,7 @@
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_otel_dataset_gate_py",
-      "community": 15,
+      "community": 16,
       "norm_label": "otel_dataset_gate.py"
     },
     {
@@ -1158,7 +1158,7 @@
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L40",
       "id": "consentflow_otel_dataset_gate_traced_register_dataset",
-      "community": 15,
+      "community": 16,
       "norm_label": "traced_register_dataset()"
     },
     {
@@ -1167,7 +1167,7 @@
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L122",
       "id": "consentflow_otel_dataset_gate_write_audit_row",
-      "community": 15,
+      "community": 16,
       "norm_label": "_write_audit_row()"
     },
     {
@@ -1176,7 +1176,7 @@
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L1",
       "id": "consentflow_otel_dataset_gate_rationale_1",
-      "community": 15,
+      "community": 16,
       "norm_label": "consentflow/otel_dataset_gate.py \u2014 otel-instrumented dataset gate wrapper (step"
     },
     {
@@ -1185,7 +1185,7 @@
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L50",
       "id": "consentflow_otel_dataset_gate_rationale_50",
-      "community": 15,
+      "community": 16,
       "norm_label": "otel-instrumented wrapper around ``register_dataset_with_consent_check``."
     },
     {
@@ -1194,7 +1194,7 @@
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L132",
       "id": "consentflow_otel_dataset_gate_rationale_132",
-      "community": 15,
+      "community": 16,
       "norm_label": "insert one row into ``audit_log``.  errors are logged, never raised."
     },
     {
@@ -1203,7 +1203,7 @@
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_otel_inference_gate_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "otel_inference_gate.py"
     },
     {
@@ -1212,7 +1212,7 @@
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L33",
       "id": "consentflow_otel_inference_gate_traced_inference_check",
-      "community": 4,
+      "community": 5,
       "norm_label": "traced_inference_check()"
     },
     {
@@ -1221,7 +1221,7 @@
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L95",
       "id": "consentflow_otel_inference_gate_write_audit_row",
-      "community": 4,
+      "community": 5,
       "norm_label": "_write_audit_row()"
     },
     {
@@ -1230,7 +1230,7 @@
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L1",
       "id": "consentflow_otel_inference_gate_rationale_1",
-      "community": 4,
+      "community": 5,
       "norm_label": "consentflow/otel_inference_gate.py \u2014 otel-instrumented inference gate helper (st"
     },
     {
@@ -1239,7 +1239,7 @@
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L42",
       "id": "consentflow_otel_inference_gate_rationale_42",
-      "community": 4,
+      "community": 5,
       "norm_label": "record an otel span and audit log row for one inference gate decision.      pa"
     },
     {
@@ -1248,7 +1248,7 @@
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L105",
       "id": "consentflow_otel_inference_gate_rationale_105",
-      "community": 4,
+      "community": 5,
       "norm_label": "insert one row into ``audit_log``.  errors are logged, never raised."
     },
     {
@@ -1257,7 +1257,7 @@
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_otel_monitoring_gate_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "otel_monitoring_gate.py"
     },
     {
@@ -1266,7 +1266,7 @@
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L43",
       "id": "consentflow_otel_monitoring_gate_traced_drift_check",
-      "community": 4,
+      "community": 5,
       "norm_label": "traced_drift_check()"
     },
     {
@@ -1275,7 +1275,7 @@
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L163",
       "id": "consentflow_otel_monitoring_gate_write_audit_row",
-      "community": 4,
+      "community": 5,
       "norm_label": "_write_audit_row()"
     },
     {
@@ -1284,7 +1284,7 @@
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L1",
       "id": "consentflow_otel_monitoring_gate_rationale_1",
-      "community": 4,
+      "community": 5,
       "norm_label": "consentflow/otel_monitoring_gate.py \u2014 otel-instrumented monitoring gate wrapper"
     },
     {
@@ -1293,7 +1293,7 @@
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L57",
       "id": "consentflow_otel_monitoring_gate_rationale_57",
-      "community": 4,
+      "community": 5,
       "norm_label": "otel-instrumented wrapper around ``run_consent_aware_drift_check``.      param"
     },
     {
@@ -1302,7 +1302,7 @@
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L173",
       "id": "consentflow_otel_monitoring_gate_rationale_173",
-      "community": 4,
+      "community": 5,
       "norm_label": "insert one row into ``audit_log``.  errors are logged, never raised."
     },
     {
@@ -1311,7 +1311,7 @@
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_otel_training_gate_py",
-      "community": 15,
+      "community": 16,
       "norm_label": "otel_training_gate.py"
     },
     {
@@ -1320,7 +1320,7 @@
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L35",
       "id": "consentflow_otel_training_gate_traced_training_quarantine",
-      "community": 15,
+      "community": 16,
       "norm_label": "traced_training_quarantine()"
     },
     {
@@ -1329,7 +1329,7 @@
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L87",
       "id": "consentflow_otel_training_gate_write_audit_row",
-      "community": 15,
+      "community": 16,
       "norm_label": "_write_audit_row()"
     },
     {
@@ -1338,7 +1338,7 @@
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L1",
       "id": "consentflow_otel_training_gate_rationale_1",
-      "community": 15,
+      "community": 16,
       "norm_label": "consentflow/otel_training_gate.py \u2014 otel-instrumented training gate helper (step"
     },
     {
@@ -1347,7 +1347,7 @@
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L43",
       "id": "consentflow_otel_training_gate_rationale_43",
-      "community": 15,
+      "community": 16,
       "norm_label": "record an otel span and audit log row for a training gate quarantine event."
     },
     {
@@ -1356,7 +1356,7 @@
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L97",
       "id": "consentflow_otel_training_gate_rationale_97",
-      "community": 15,
+      "community": 16,
       "norm_label": "insert one row into ``audit_log``.  errors are logged, never raised."
     },
     {
@@ -1365,7 +1365,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_policy_auditor_py",
-      "community": 5,
+      "community": 4,
       "norm_label": "policy_auditor.py"
     },
     {
@@ -1374,7 +1374,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L85",
       "id": "consentflow_policy_auditor_policyfetcherror",
-      "community": 5,
+      "community": 4,
       "norm_label": "policyfetcherror"
     },
     {
@@ -1383,7 +1383,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L89",
       "id": "consentflow_policy_auditor_policyanalysiserror",
-      "community": 5,
+      "community": 4,
       "norm_label": "policyanalysiserror"
     },
     {
@@ -1392,7 +1392,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L96",
       "id": "consentflow_policy_auditor_textextractor",
-      "community": 5,
+      "community": 4,
       "norm_label": "_textextractor"
     },
     {
@@ -1401,7 +1401,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "",
       "id": "htmlparser",
-      "community": 5,
+      "community": 4,
       "norm_label": "htmlparser"
     },
     {
@@ -1410,7 +1410,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L103",
       "id": "consentflow_policy_auditor_textextractor_init",
-      "community": 5,
+      "community": 4,
       "norm_label": ".__init__()"
     },
     {
@@ -1419,7 +1419,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L109",
       "id": "consentflow_policy_auditor_textextractor_handle_starttag",
-      "community": 5,
+      "community": 4,
       "norm_label": ".handle_starttag()"
     },
     {
@@ -1428,7 +1428,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L115",
       "id": "consentflow_policy_auditor_textextractor_handle_endtag",
-      "community": 5,
+      "community": 4,
       "norm_label": ".handle_endtag()"
     },
     {
@@ -1437,7 +1437,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L121",
       "id": "consentflow_policy_auditor_textextractor_handle_data",
-      "community": 5,
+      "community": 4,
       "norm_label": ".handle_data()"
     },
     {
@@ -1446,7 +1446,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L128",
       "id": "consentflow_policy_auditor_text",
-      "community": 5,
+      "community": 4,
       "norm_label": "text()"
     },
     {
@@ -1455,7 +1455,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L132",
       "id": "consentflow_policy_auditor_strip_html",
-      "community": 5,
+      "community": 4,
       "norm_label": "_strip_html()"
     },
     {
@@ -1464,7 +1464,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L143",
       "id": "consentflow_policy_auditor_strip_markdown_fences",
-      "community": 5,
+      "community": 4,
       "norm_label": "_strip_markdown_fences()"
     },
     {
@@ -1473,7 +1473,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L152",
       "id": "consentflow_policy_auditor_validate_severity",
-      "community": 5,
+      "community": 4,
       "norm_label": "_validate_severity()"
     },
     {
@@ -1482,7 +1482,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L164",
       "id": "consentflow_policy_auditor_compute_max_severity",
-      "community": 5,
+      "community": 4,
       "norm_label": "_compute_max_severity()"
     },
     {
@@ -1491,7 +1491,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L182",
       "id": "consentflow_policy_auditor_fetch_policy_text",
-      "community": 5,
+      "community": 4,
       "norm_label": "fetch_policy_text()"
     },
     {
@@ -1500,7 +1500,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L238",
       "id": "consentflow_policy_auditor_analyze_policy",
-      "community": 5,
+      "community": 4,
       "norm_label": "analyze_policy()"
     },
     {
@@ -1509,7 +1509,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L366",
       "id": "consentflow_policy_auditor_policyauditor",
-      "community": 5,
+      "community": 4,
       "norm_label": "policyauditor"
     },
     {
@@ -1518,7 +1518,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L376",
       "id": "consentflow_policy_auditor_policyauditor_init",
-      "community": 5,
+      "community": 4,
       "norm_label": ".__init__()"
     },
     {
@@ -1527,7 +1527,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L385",
       "id": "consentflow_policy_auditor_policyauditor_close",
-      "community": 5,
+      "community": 4,
       "norm_label": "._close()"
     },
     {
@@ -1536,7 +1536,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L388",
       "id": "consentflow_policy_auditor_policyauditor_aenter",
-      "community": 5,
+      "community": 4,
       "norm_label": ".__aenter__()"
     },
     {
@@ -1545,7 +1545,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L391",
       "id": "consentflow_policy_auditor_policyauditor_aexit",
-      "community": 5,
+      "community": 4,
       "norm_label": ".__aexit__()"
     },
     {
@@ -1554,7 +1554,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L396",
       "id": "consentflow_policy_auditor_policyauditor_fetch_policy_text",
-      "community": 5,
+      "community": 4,
       "norm_label": ".fetch_policy_text()"
     },
     {
@@ -1563,7 +1563,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L420",
       "id": "consentflow_policy_auditor_policyauditor_analyze_policy",
-      "community": 5,
+      "community": 4,
       "norm_label": ".analyze_policy()"
     },
     {
@@ -1572,7 +1572,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L439",
       "id": "consentflow_policy_auditor_policyauditor_scan",
-      "community": 5,
+      "community": 4,
       "norm_label": ".scan()"
     },
     {
@@ -1581,7 +1581,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L1",
       "id": "consentflow_policy_auditor_rationale_1",
-      "community": 5,
+      "community": 4,
       "norm_label": "consentflow/policy_auditor.py \u2014 gate 05: policy auditor  fetches and analyses"
     },
     {
@@ -1590,7 +1590,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L86",
       "id": "consentflow_policy_auditor_rationale_86",
-      "community": 5,
+      "community": 4,
       "norm_label": "raised when the policy document cannot be retrieved or decoded."
     },
     {
@@ -1599,7 +1599,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L90",
       "id": "consentflow_policy_auditor_rationale_90",
-      "community": 5,
+      "community": 4,
       "norm_label": "raised when the ollama api call fails at the network/auth level."
     },
     {
@@ -1608,7 +1608,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L97",
       "id": "consentflow_policy_auditor_rationale_97",
-      "community": 5,
+      "community": 4,
       "norm_label": "minimal htmlparser subclass that collects visible text nodes."
     },
     {
@@ -1617,7 +1617,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L133",
       "id": "consentflow_policy_auditor_rationale_133",
-      "community": 5,
+      "community": 4,
       "norm_label": "return plain text extracted from an html document."
     },
     {
@@ -1626,7 +1626,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L144",
       "id": "consentflow_policy_auditor_rationale_144",
-      "community": 5,
+      "community": 4,
       "norm_label": "remove accidental markdown code fences that some models add despite json_object"
     },
     {
@@ -1635,7 +1635,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L153",
       "id": "consentflow_policy_auditor_rationale_153",
-      "community": 5,
+      "community": 4,
       "norm_label": "return *value* if it is a known severity, else warn and return 'low'."
     },
     {
@@ -1644,7 +1644,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L165",
       "id": "consentflow_policy_auditor_rationale_165",
-      "community": 5,
+      "community": 4,
       "norm_label": "return the highest severity present in *findings*, or 'low' if empty."
     },
     {
@@ -1653,7 +1653,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L183",
       "id": "consentflow_policy_auditor_rationale_183",
-      "community": 5,
+      "community": 4,
       "norm_label": "fetch a privacy policy document from *url* and return plain text.      raises"
     },
     {
@@ -1662,7 +1662,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L243",
       "id": "consentflow_policy_auditor_rationale_243",
-      "community": 5,
+      "community": 4,
       "norm_label": "send policy text to the local ollama llm and return a policyscanresult-like dict"
     },
     {
@@ -1671,7 +1671,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L367",
       "id": "consentflow_policy_auditor_rationale_367",
-      "community": 5,
+      "community": 4,
       "norm_label": "gate 05 \u2014 policy auditor.      parameters     ----------     db_pool:      a"
     },
     {
@@ -1680,7 +1680,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L386",
       "id": "consentflow_policy_auditor_rationale_386",
-      "community": 5,
+      "community": 4,
       "norm_label": "no-op: no persistent connections to release."
     },
     {
@@ -1689,7 +1689,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L397",
       "id": "consentflow_policy_auditor_rationale_397",
-      "community": 5,
+      "community": 4,
       "norm_label": "fetch a privacy policy document from *url* and return plain text.          rai"
     },
     {
@@ -1698,7 +1698,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L426",
       "id": "consentflow_policy_auditor_rationale_426",
-      "community": 5,
+      "community": 4,
       "norm_label": "send policy text to ollama and return parsed findings.          returns"
     },
     {
@@ -1707,7 +1707,7 @@
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L444",
       "id": "consentflow_policy_auditor_rationale_444",
-      "community": 5,
+      "community": 4,
       "norm_label": "full scan pipeline:          1. resolve policy text (url fetch or direct text)"
     },
     {
@@ -1815,7 +1815,7 @@
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_telemetry_py",
-      "community": 15,
+      "community": 16,
       "norm_label": "telemetry.py"
     },
     {
@@ -1824,7 +1824,7 @@
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L29",
       "id": "consentflow_telemetry_configure_otel",
-      "community": 15,
+      "community": 16,
       "norm_label": "configure_otel()"
     },
     {
@@ -1833,7 +1833,7 @@
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L66",
       "id": "consentflow_telemetry_get_tracer",
-      "community": 15,
+      "community": 16,
       "norm_label": "get_tracer()"
     },
     {
@@ -1842,7 +1842,7 @@
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L1",
       "id": "consentflow_telemetry_rationale_1",
-      "community": 15,
+      "community": 16,
       "norm_label": "consentflow/telemetry.py \u2014 opentelemetry tracer factory (step 7).  usage ----"
     },
     {
@@ -1851,7 +1851,7 @@
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L30",
       "id": "consentflow_telemetry_rationale_30",
-      "community": 15,
+      "community": 16,
       "norm_label": "set up a global otlp grpc exporter + batch span processor.      parameters"
     },
     {
@@ -1860,7 +1860,7 @@
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L67",
       "id": "consentflow_telemetry_rationale_67",
-      "community": 15,
+      "community": 16,
       "norm_label": "return the global otel tracer for *name*.      if ``configure_otel()`` has not"
     },
     {
@@ -2264,8 +2264,8 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
       "source_location": "L1",
-      "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
-      "community": 16,
+      "id": "consentflow_backend_consentflow_app_kafka_producer_py",
+      "community": 15,
       "norm_label": "kafka_producer.py"
     },
     {
@@ -2274,25 +2274,25 @@
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
       "source_location": "L40",
       "id": "app_kafka_producer_create_kafka_producer",
-      "community": 16,
+      "community": 15,
       "norm_label": "create_kafka_producer()"
     },
     {
       "label": "close_kafka_producer()",
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L68",
+      "source_location": "L87",
       "id": "app_kafka_producer_close_kafka_producer",
-      "community": 16,
+      "community": 15,
       "norm_label": "close_kafka_producer()"
     },
     {
       "label": "publish_revocation()",
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L77",
+      "source_location": "L98",
       "id": "app_kafka_producer_publish_revocation",
-      "community": 16,
+      "community": 15,
       "norm_label": "publish_revocation()"
     },
     {
@@ -2301,7 +2301,7 @@
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
       "source_location": "L1",
       "id": "app_kafka_producer_rationale_1",
-      "community": 16,
+      "community": 15,
       "norm_label": "kafka_producer.py \u2014 async kafka producer for consent-revocation events.  lifec"
     },
     {
@@ -2310,25 +2310,25 @@
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
       "source_location": "L41",
       "id": "app_kafka_producer_rationale_41",
-      "community": 16,
+      "community": 15,
       "norm_label": "instantiate and start an aiokafkaproducer.      the producer serialises values"
     },
     {
-      "label": "Flush pending messages and stop the producer.",
+      "label": "Flush pending messages and stop the producer (no-op if producer is None).",
       "file_type": "rationale",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L69",
-      "id": "app_kafka_producer_rationale_69",
-      "community": 16,
-      "norm_label": "flush pending messages and stop the producer."
+      "source_location": "L88",
+      "id": "app_kafka_producer_rationale_88",
+      "community": 15,
+      "norm_label": "flush pending messages and stop the producer (no-op if producer is none)."
     },
     {
       "label": "Publish a ``consent.revoked`` event to Kafka.      Parameters     ----------",
       "file_type": "rationale",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L83",
-      "id": "app_kafka_producer_rationale_83",
-      "community": 16,
+      "source_location": "L104",
+      "id": "app_kafka_producer_rationale_104",
+      "community": 15,
       "norm_label": "publish a ``consent.revoked`` event to kafka.      parameters     ----------"
     },
     {
@@ -2400,7 +2400,7 @@
       "source_file": "consentflow-backend/consentflow/app/models.py",
       "source_location": "",
       "id": "str",
-      "community": 4,
+      "community": 5,
       "norm_label": "str"
     },
     {
@@ -3354,7 +3354,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_routers_webhook_py",
-      "community": 16,
+      "community": 15,
       "norm_label": "webhook.py"
     },
     {
@@ -3363,7 +3363,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L48",
       "id": "routers_webhook_onetrustrevokepayload",
-      "community": 16,
+      "community": 15,
       "norm_label": "onetrustrevokepayload"
     },
     {
@@ -3372,7 +3372,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L81",
       "id": "routers_webhook_webhookrevokeresponse",
-      "community": 16,
+      "community": 15,
       "norm_label": "webhookrevokeresponse"
     },
     {
@@ -3381,7 +3381,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L92",
       "id": "routers_webhook_get_pool",
-      "community": 16,
+      "community": 15,
       "norm_label": "_get_pool()"
     },
     {
@@ -3390,7 +3390,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L96",
       "id": "routers_webhook_get_redis",
-      "community": 16,
+      "community": 15,
       "norm_label": "_get_redis()"
     },
     {
@@ -3399,7 +3399,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L100",
       "id": "routers_webhook_get_producer",
-      "community": 16,
+      "community": 15,
       "norm_label": "_get_producer()"
     },
     {
@@ -3408,7 +3408,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L107",
       "id": "routers_webhook_apply_revocation_to_db",
-      "community": 16,
+      "community": 15,
       "norm_label": "_apply_revocation_to_db()"
     },
     {
@@ -3417,7 +3417,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L172",
       "id": "routers_webhook_receive_consent_revoke",
-      "community": 16,
+      "community": 15,
       "norm_label": "receive_consent_revoke()"
     },
     {
@@ -3426,7 +3426,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L1",
       "id": "routers_webhook_rationale_1",
-      "community": 16,
+      "community": 15,
       "norm_label": "routers/webhook.py \u2014 webhook ingress for external consent-revocation signals."
     },
     {
@@ -3435,7 +3435,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L49",
       "id": "routers_webhook_rationale_49",
-      "community": 16,
+      "community": 15,
       "norm_label": "mock onetrust consent-revocation webhook payload.      onetrust sends camelcas"
     },
     {
@@ -3444,7 +3444,7 @@
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L112",
       "id": "routers_webhook_rationale_112",
-      "community": 16,
+      "community": 15,
       "norm_label": "upsert a 'revoked' record in the db for user+purpose.      uses insert ... on co"
     },
     {
@@ -4038,7 +4038,7 @@
       "source_file": "consentflow-backend/tests/test_health.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_tests_test_health_py",
-      "community": 33,
+      "community": 30,
       "norm_label": "test_health.py"
     },
     {
@@ -4047,7 +4047,7 @@
       "source_file": "consentflow-backend/tests/test_health.py",
       "source_location": "L11",
       "id": "tests_test_health_test_health_ok",
-      "community": 33,
+      "community": 30,
       "norm_label": "test_health_ok()"
     },
     {
@@ -4056,7 +4056,7 @@
       "source_file": "consentflow-backend/tests/test_health.py",
       "source_location": "L1",
       "id": "tests_test_health_rationale_1",
-      "community": 33,
+      "community": 30,
       "norm_label": "tests/test_health.py \u2014 smoke tests for get /health."
     },
     {
@@ -5001,7 +5001,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L1",
       "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_tests_test_step7_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_step7.py"
     },
     {
@@ -5010,7 +5010,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L46",
       "id": "tests_test_step7_make_recording_tracer",
-      "community": 4,
+      "community": 5,
       "norm_label": "_make_recording_tracer()"
     },
     {
@@ -5019,7 +5019,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L61",
       "id": "tests_test_step7_fake_consent_fn",
-      "community": 4,
+      "community": 5,
       "norm_label": "_fake_consent_fn()"
     },
     {
@@ -5028,7 +5028,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L65",
       "id": "tests_test_step7_make_reference_df",
-      "community": 4,
+      "community": 5,
       "norm_label": "_make_reference_df()"
     },
     {
@@ -5037,7 +5037,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L75",
       "id": "tests_test_step7_test_traced_inference_check_blocked",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_traced_inference_check_blocked()"
     },
     {
@@ -5046,7 +5046,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L112",
       "id": "tests_test_step7_test_traced_inference_check_passed",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_traced_inference_check_passed()"
     },
     {
@@ -5055,7 +5055,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L149",
       "id": "tests_test_step7_test_traced_training_quarantine_span",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_traced_training_quarantine_span()"
     },
     {
@@ -5064,7 +5064,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L188",
       "id": "tests_test_step7_test_traced_drift_check_alerted",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_traced_drift_check_alerted()"
     },
     {
@@ -5073,7 +5073,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L241",
       "id": "tests_test_step7_test_traced_drift_check_passed",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_traced_drift_check_passed()"
     },
     {
@@ -5082,7 +5082,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L293",
       "id": "tests_test_step7_test_traced_register_dataset_all_consented",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_traced_register_dataset_all_consented()"
     },
     {
@@ -5091,7 +5091,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L346",
       "id": "tests_test_step7_test_audit_trail_endpoint_empty",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_audit_trail_endpoint_empty()"
     },
     {
@@ -5100,7 +5100,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L403",
       "id": "tests_test_step7_test_audit_trail_endpoint_with_entries",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_audit_trail_endpoint_with_entries()"
     },
     {
@@ -5109,7 +5109,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L1",
       "id": "tests_test_step7_rationale_1",
-      "community": 4,
+      "community": 5,
       "norm_label": "tests/test_step7.py \u2014 unit tests for step 7 (observability dashboard).  eight"
     },
     {
@@ -5118,7 +5118,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L47",
       "id": "tests_test_step7_rationale_47",
-      "community": 4,
+      "community": 5,
       "norm_label": "return a real sdk tracer that writes spans to *exporter*."
     },
     {
@@ -5127,7 +5127,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L76",
       "id": "tests_test_step7_rationale_76",
-      "community": 4,
+      "community": 5,
       "norm_label": "t1: when consent is revoked, traced_inference_check must return \"blocked\"     a"
     },
     {
@@ -5136,7 +5136,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L113",
       "id": "tests_test_step7_rationale_113",
-      "community": 4,
+      "community": 5,
       "norm_label": "t2: when consent is granted, traced_inference_check must return \"passed\"     an"
     },
     {
@@ -5145,7 +5145,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L150",
       "id": "tests_test_step7_rationale_150",
-      "community": 4,
+      "community": 5,
       "norm_label": "t3: traced_training_quarantine must produce a span with correct attributes:"
     },
     {
@@ -5154,7 +5154,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L189",
       "id": "tests_test_step7_rationale_189",
-      "community": 4,
+      "community": 5,
       "norm_label": "t4: when the monitoring window contains revoked-user samples, traced_drift_check"
     },
     {
@@ -5163,7 +5163,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L242",
       "id": "tests_test_step7_rationale_242",
-      "community": 4,
+      "community": 5,
       "norm_label": "t5: when all samples are granted, traced_drift_check must return     has_revoke"
     },
     {
@@ -5172,7 +5172,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L294",
       "id": "tests_test_step7_rationale_294",
-      "community": 4,
+      "community": 5,
       "norm_label": "t6: when all dataset records are consented, traced_register_dataset must     pr"
     },
     {
@@ -5181,7 +5181,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L347",
       "id": "tests_test_step7_rationale_347",
-      "community": 4,
+      "community": 5,
       "norm_label": "t7: get /audit/trail against an empty fakepool must return:       {\"entries\": ["
     },
     {
@@ -5190,7 +5190,7 @@
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L404",
       "id": "tests_test_step7_rationale_404",
-      "community": 4,
+      "community": 5,
       "norm_label": "t8: get /audit/trail with a fakepool that returns one synthetic audit row     m"
     },
     {
@@ -5226,7 +5226,7 @@
       "source_file": "consentflow-extension/src/vitest.setup.ts",
       "source_location": "L1",
       "id": "consentflow_extension_src_vitest_setup_ts",
-      "community": 30,
+      "community": 31,
       "norm_label": "vitest.setup.ts"
     },
     {
@@ -5235,7 +5235,7 @@
       "source_file": "consentflow-extension/src/vitest.setup.ts",
       "source_location": "L19",
       "id": "src_vitest_setup_get",
-      "community": 30,
+      "community": 31,
       "norm_label": "get()"
     },
     {
@@ -5244,7 +5244,7 @@
       "source_file": "consentflow-extension/src/vitest.setup.ts",
       "source_location": "L37",
       "id": "src_vitest_setup_set",
-      "community": 30,
+      "community": 31,
       "norm_label": "set()"
     },
     {
@@ -5253,7 +5253,7 @@
       "source_file": "consentflow-extension/src/vitest.setup.ts",
       "source_location": "L45",
       "id": "src_vitest_setup_remove",
-      "community": 30,
+      "community": 31,
       "norm_label": "remove()"
     },
     {
@@ -5667,7 +5667,7 @@
       "source_file": "consentflow-extension/src/vault/vault.ts",
       "source_location": "L1",
       "id": "consentflow_extension_src_vault_vault_ts",
-      "community": 31,
+      "community": 32,
       "norm_label": "vault.ts"
     },
     {
@@ -5676,7 +5676,7 @@
       "source_file": "consentflow-extension/src/vault/vault.ts",
       "source_location": "L24",
       "id": "vault_vault_newredacteddummy",
-      "community": 31,
+      "community": 32,
       "norm_label": "_newredacteddummy()"
     },
     {
@@ -5685,7 +5685,7 @@
       "source_file": "consentflow-extension/src/vault/vault.ts",
       "source_location": "L33",
       "id": "vault_vault_sortedentries",
-      "community": 31,
+      "community": 32,
       "norm_label": "_sortedentries()"
     },
     {
@@ -5698,12 +5698,21 @@
       "norm_label": "eslint.config.mjs"
     },
     {
+      "label": "next-env.d.ts",
+      "file_type": "code",
+      "source_file": "consentflow-frontend/next-env.d.ts",
+      "source_location": "L1",
+      "id": "consentflow_frontend_next_env_d_ts",
+      "community": 59,
+      "norm_label": "next-env.d.ts"
+    },
+    {
       "label": "next.config.ts",
       "file_type": "code",
       "source_file": "consentflow-frontend/next.config.ts",
       "source_location": "L1",
       "id": "consentflow_frontend_next_config_ts",
-      "community": 59,
+      "community": 60,
       "norm_label": "next.config.ts"
     },
     {
@@ -5712,7 +5721,7 @@
       "source_file": "consentflow-frontend/postcss.config.mjs",
       "source_location": "L1",
       "id": "consentflow_frontend_postcss_config_mjs",
-      "community": 60,
+      "community": 61,
       "norm_label": "postcss.config.mjs"
     },
     {
@@ -5721,7 +5730,7 @@
       "source_file": "consentflow-frontend/app/layout.tsx",
       "source_location": "L1",
       "id": "consentflow_frontend_app_layout_tsx",
-      "community": 32,
+      "community": 33,
       "norm_label": "layout.tsx"
     },
     {
@@ -5730,7 +5739,7 @@
       "source_file": "consentflow-frontend/app/layout.tsx",
       "source_location": "L23",
       "id": "app_layout_rootlayout",
-      "community": 32,
+      "community": 33,
       "norm_label": "rootlayout()"
     },
     {
@@ -5811,7 +5820,7 @@
       "source_file": "consentflow-frontend/app/(dashboard)/infer/page.tsx",
       "source_location": "L1",
       "id": "consentflow_frontend_app_dashboard_infer_page_tsx",
-      "community": 61,
+      "community": 62,
       "norm_label": "page.tsx"
     },
     {
@@ -5838,7 +5847,7 @@
       "source_file": "consentflow-frontend/app/(dashboard)/webhook/page.tsx",
       "source_location": "L1",
       "id": "consentflow_frontend_app_dashboard_webhook_page_tsx",
-      "community": 62,
+      "community": 63,
       "norm_label": "page.tsx"
     },
     {
@@ -6144,7 +6153,7 @@
       "source_file": "consentflow-frontend/components/providers.tsx",
       "source_location": "L1",
       "id": "consentflow_frontend_components_providers_tsx",
-      "community": 32,
+      "community": 33,
       "norm_label": "providers.tsx"
     },
     {
@@ -6153,7 +6162,7 @@
       "source_file": "consentflow-frontend/components/providers.tsx",
       "source_location": "L6",
       "id": "components_providers_providers",
-      "community": 32,
+      "community": 33,
       "norm_label": "providers()"
     },
     {
@@ -6378,7 +6387,7 @@
       "source_file": "consentflow-frontend/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "consentflow_frontend_components_ui_sonner_tsx",
-      "community": 63,
+      "community": 64,
       "norm_label": "sonner.tsx"
     },
     {
@@ -6477,7 +6486,7 @@
       "source_file": "consentflow-frontend/lib/axios.ts",
       "source_location": "L1",
       "id": "consentflow_frontend_lib_axios_ts",
-      "community": 64,
+      "community": 65,
       "norm_label": "axios.ts"
     },
     {
@@ -6486,7 +6495,7 @@
       "source_file": "consentflow-frontend/lib/constants.ts",
       "source_location": "L1",
       "id": "consentflow_frontend_lib_constants_ts",
-      "community": 65,
+      "community": 66,
       "norm_label": "constants.ts"
     },
     {
@@ -6495,7 +6504,7 @@
       "source_file": "consentflow-frontend/lib/types.ts",
       "source_location": "L1",
       "id": "consentflow_frontend_lib_types_ts",
-      "community": 66,
+      "community": 67,
       "norm_label": "types.ts"
     },
     {
@@ -6524,6 +6533,33 @@
       "id": "lib_utils_timeago",
       "community": 1,
       "norm_label": "timeago()"
+    },
+    {
+      "label": "kafka_producer.py",
+      "file_type": "code",
+      "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
+      "source_location": "L1",
+      "community": 15,
+      "norm_label": "kafka_producer.py",
+      "id": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py"
+    },
+    {
+      "label": "Flush pending messages and stop the producer.",
+      "file_type": "rationale",
+      "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
+      "source_location": "L69",
+      "community": 15,
+      "norm_label": "flush pending messages and stop the producer.",
+      "id": "app_kafka_producer_rationale_69"
+    },
+    {
+      "label": "Publish a ``consent.revoked`` event to Kafka.      Parameters     ----------",
+      "file_type": "rationale",
+      "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
+      "source_location": "L83",
+      "community": 15,
+      "norm_label": "publish a ``consent.revoked`` event to kafka.      parameters     ----------",
+      "id": "app_kafka_producer_rationale_83"
     },
     {
       "label": "isChatTranscript()",
@@ -6602,7 +6638,7 @@
       "file_type": "code",
       "source_file": "consentflow-extension/src/vault/vault.ts",
       "source_location": "L88",
-      "community": 31,
+      "community": 32,
       "norm_label": "getdb()",
       "id": "vault_vault_getdb"
     },
@@ -6665,7 +6701,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/seed_db.py",
       "source_location": "L1",
-      "community": 4,
+      "community": 5,
       "norm_label": "seed_db.py",
       "id": "consentflow_backend_seed_db_py"
     },
@@ -6719,7 +6755,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/otel_dataset_gate.py",
       "source_location": "L1",
-      "community": 15,
+      "community": 16,
       "norm_label": "otel_dataset_gate.py",
       "id": "consentflow_backend_consentflow_otel_dataset_gate_py"
     },
@@ -6728,7 +6764,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/otel_inference_gate.py",
       "source_location": "L1",
-      "community": 4,
+      "community": 5,
       "norm_label": "otel_inference_gate.py",
       "id": "consentflow_backend_consentflow_otel_inference_gate_py"
     },
@@ -6737,7 +6773,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/otel_monitoring_gate.py",
       "source_location": "L1",
-      "community": 4,
+      "community": 5,
       "norm_label": "otel_monitoring_gate.py",
       "id": "consentflow_backend_consentflow_otel_monitoring_gate_py"
     },
@@ -6746,7 +6782,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/otel_training_gate.py",
       "source_location": "L1",
-      "community": 15,
+      "community": 16,
       "norm_label": "otel_training_gate.py",
       "id": "consentflow_backend_consentflow_otel_training_gate_py"
     },
@@ -6755,7 +6791,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/policy_auditor.py",
       "source_location": "L1",
-      "community": 5,
+      "community": 4,
       "norm_label": "policy_auditor.py",
       "id": "consentflow_backend_consentflow_policy_auditor_py"
     },
@@ -6773,7 +6809,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/telemetry.py",
       "source_location": "L1",
-      "community": 15,
+      "community": 16,
       "norm_label": "telemetry.py",
       "id": "consentflow_backend_consentflow_telemetry_py"
     },
@@ -6791,7 +6827,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/__init__.py",
       "source_location": "L1",
-      "community": 67,
+      "community": 68,
       "norm_label": "__init__.py",
       "id": "consentflow_backend_consentflow_init_py"
     },
@@ -6823,20 +6859,11 @@
       "id": "consentflow_backend_consentflow_app_db_py"
     },
     {
-      "label": "kafka_producer.py",
-      "file_type": "code",
-      "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L1",
-      "community": 16,
-      "norm_label": "kafka_producer.py",
-      "id": "consentflow_backend_consentflow_app_kafka_producer_py"
-    },
-    {
       "label": "__init__.py",
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/app/__init__.py",
       "source_location": "L1",
-      "community": 68,
+      "community": 69,
       "norm_label": "__init__.py",
       "id": "consentflow_backend_consentflow_app_init_py"
     },
@@ -6899,7 +6926,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/app/routers/webhook.py",
       "source_location": "L1",
-      "community": 16,
+      "community": 15,
       "norm_label": "webhook.py",
       "id": "consentflow_backend_consentflow_app_routers_webhook_py"
     },
@@ -6908,7 +6935,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/consentflow/app/routers/__init__.py",
       "source_location": "L1",
-      "community": 69,
+      "community": 70,
       "norm_label": "__init__.py",
       "id": "consentflow_backend_consentflow_app_routers_init_py"
     },
@@ -6944,7 +6971,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/tests/test_health.py",
       "source_location": "L1",
-      "community": 33,
+      "community": 30,
       "norm_label": "test_health.py",
       "id": "consentflow_backend_tests_test_health_py"
     },
@@ -6998,7 +7025,7 @@
       "file_type": "code",
       "source_file": "consentflow-backend/tests/test_step7.py",
       "source_location": "L1",
-      "community": 4,
+      "community": 5,
       "norm_label": "test_step7.py",
       "id": "consentflow_backend_tests_test_step7_py"
     },
@@ -7007,18 +7034,9 @@
       "file_type": "code",
       "source_file": "consentflow-backend/tests/__init__.py",
       "source_location": "L1",
-      "community": 70,
+      "community": 71,
       "norm_label": "__init__.py",
       "id": "consentflow_backend_tests_init_py"
-    },
-    {
-      "label": "next-env.d.ts",
-      "file_type": "code",
-      "source_file": "consentflow-frontend/next-env.d.ts",
-      "source_location": "L1",
-      "community": 71,
-      "norm_label": "next-env.d.ts",
-      "id": "consentflow_frontend_next_env_d_ts"
     },
     {
       "label": "Dialog()",
@@ -12376,7 +12394,7 @@
       "source_location": "L40",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
+      "source": "consentflow_backend_consentflow_app_kafka_producer_py",
       "target": "app_kafka_producer_create_kafka_producer"
     },
     {
@@ -12386,7 +12404,7 @@
       "source_location": "L68",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
+      "source": "consentflow_backend_consentflow_app_kafka_producer_py",
       "target": "app_kafka_producer_close_kafka_producer"
     },
     {
@@ -12396,7 +12414,7 @@
       "source_location": "L77",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
+      "source": "consentflow_backend_consentflow_app_kafka_producer_py",
       "target": "app_kafka_producer_publish_revocation"
     },
     {
@@ -12407,7 +12425,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "app_kafka_producer_rationale_1",
-      "target": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py"
+      "target": "consentflow_backend_consentflow_app_kafka_producer_py"
     },
     {
       "relation": "rationale_for",
@@ -12437,18 +12455,18 @@
       "source_location": "L40",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "consentflow_backend_consentflow_app_kafka_producer_py",
+      "source": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
       "target": "app_kafka_producer_create_kafka_producer"
     },
     {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L69",
+      "source_location": "L88",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_kafka_producer_rationale_69",
-      "target": "app_kafka_producer_close_kafka_producer"
+      "source": "app_kafka_producer_rationale_88",
+      "target": "app_kafka_producer_close_kafka_producer",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12468,18 +12486,28 @@
       "source_location": "L68",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "consentflow_backend_consentflow_app_kafka_producer_py",
+      "source": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
       "target": "app_kafka_producer_close_kafka_producer"
     },
     {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
-      "source_location": "L83",
+      "source_location": "L69",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "app_kafka_producer_rationale_83",
-      "target": "app_kafka_producer_publish_revocation"
+      "source": "app_kafka_producer_rationale_69",
+      "target": "app_kafka_producer_close_kafka_producer"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
+      "source_location": "L104",
+      "weight": 1.0,
+      "source": "app_kafka_producer_rationale_104",
+      "target": "app_kafka_producer_publish_revocation",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12499,7 +12527,17 @@
       "source_location": "L77",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "consentflow_backend_consentflow_app_kafka_producer_py",
+      "source": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py",
+      "target": "app_kafka_producer_publish_revocation"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "consentflow-backend/consentflow/app/kafka_producer.py",
+      "source_location": "L83",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "app_kafka_producer_rationale_83",
       "target": "app_kafka_producer_publish_revocation"
     },
     {
@@ -12510,7 +12548,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "app_kafka_producer_rationale_1",
-      "target": "consentflow_backend_consentflow_app_kafka_producer_py"
+      "target": "c_users_negir_onedrive_desktop_consentflow_consentflow_backend_consentflow_app_kafka_producer_py"
     },
     {
       "relation": "contains",
@@ -21135,5 +21173,5 @@
       "source_file": "consentflow-backend/docker-compose.yml"
     }
   ],
-  "built_at_commit": "1288afb62f7ff501d614a7068d06f751ce585082"
+  "built_at_commit": "04f7b7320442162fc2cc0064956e675f01e1586c"
 }
