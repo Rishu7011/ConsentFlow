@@ -1,0 +1,72 @@
+name: "Anti-Spam / PR Size Limiter"
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-pr-size:
+    name: Check PR Size & Spam
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Validate PR Size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+            const association = pr.author_association;
+            
+            // Bypass maintainers and owners
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(association)) {
+              console.log(`Bypassing spam check for ${association} ${author}`);
+              return;
+            }
+            
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const changedFiles = pr.changed_files;
+            
+            // Thresholds for spam/massive PRs
+            const MAX_CHANGES = 800;
+            const MAX_FILES = 20;
+            
+            if (additions + deletions > MAX_CHANGES || changedFiles > MAX_FILES) {
+              console.log(`PR too large! Changes: ${additions + deletions}, Files: ${changedFiles}`);
+              
+              const message = `
+              ⚠️ **Warning: Pull Request Exceeds Size Limits** ⚠️
+              
+              Hello @${author}! Thank you for your contribution. 
+              
+              During GSSoC, we require pull requests to be focused and atomic. Your PR modifies **${changedFiles} files** with a total of **${additions + deletions} line changes**, which exceeds our automated review threshold.
+              
+              Massive PRs (often caused by accidental bulk commits, copy-pasting frameworks, or committing generated files like package-lock.json) are extremely difficult for our maintainers to review.
+              
+              **Next Steps:**
+              - Please break this down into smaller, logical pull requests.
+              - Ensure you haven't accidentally committed build files, dependencies, or unrelated changes.
+              
+              A maintainer will review this manually, but it may be closed if it is deemed unreviewable or spam.
+              `;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: message
+              });
+              
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['spam?', 'needs-maintainer-review']
+              });
+            } else {
+              console.log("PR size is within acceptable limits.");
+            }
