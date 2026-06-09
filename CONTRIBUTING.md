@@ -1,111 +1,113 @@
-# Contributing to ConsentFlow
+# 🚀 New Contributor Guide
 
-Thank you for your interest in contributing! ConsentFlow is a GSSoC 2026 project — all skill levels are welcome, from documentation fixes to new enforcement gates.
-
-Please read this guide before opening an issue or submitting a PR.
+Welcome to **ConsentFlow**! 🎉 We are thrilled to have you here, especially if you are participating in **GSSoC '26**. This guide will walk you through everything you need to get started — from your very first issue claim to opening a polished Pull Request.
 
 ---
 
-## Table of Contents
+## 📋 Table of Contents
 
-1. [Code of Conduct](#code-of-conduct)
-2. [Project Structure](#project-structure)
-3. [Setting Up Locally](#setting-up-locally)
-4. [Branch Naming](#branch-naming)
-5. [Commit Messages](#commit-messages)
-6. [Code Style](#code-style)
-7. [Running Tests](#running-tests)
-8. [Submitting a Pull Request](#submitting-a-pull-request)
-9. [Issue Labels](#issue-labels)
-10. [Getting Help](#getting-help)
-
----
-
-## Code of Conduct
-
-Be respectful. Harassment, discrimination, or hostile behaviour of any kind will not be tolerated. This project follows the [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+1. [Prerequisites](#-1-prerequisites)
+2. [Understanding the Project](#-2-understanding-the-project)
+3. [Claiming an Issue](#-3-claiming-an-issue)
+4. [Assignment Rules (Important!)](#-4-assignment-rules-important)
+5. [Local Setup](#-5-local-setup)
+6. [Branching Strategy](#-6-branching-strategy)
+7. [Commit Message Format](#-7-commit-message-format)
+8. [Opening a Pull Request](#-8-opening-a-pull-request)
+9. [GSSoC Scoring](#-9-gssoc-scoring)
+10. [Getting Help](#-10-getting-help)
 
 ---
 
-## Project Structure
+## 🛠️ 1. Prerequisites
 
-```
-ConsentFlow/
-├── consentflow-backend/     # FastAPI · Python 3.12 · asyncpg · Redis · Kafka
-├── consentflow-frontend/    # Next.js 16 · React 19 · TypeScript · Tailwind v4
-├── consentflow-extension/   # Chrome Extension · Manifest V3 · TypeScript
-├── CONTRIBUTING.md          # This file
-└── README.md
-```
+Before you begin, ensure you have the following installed on your machine:
 
-Each sub-project has its own reference doc:
-- [`backend.md`](./backend.md) — full backend module reference
-- [`frontend.md`](./frontend.md) — full frontend component reference
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Docker + Docker Compose | v2+ | Runs Kafka, Redis, Postgres, Zookeeper |
+| Node.js | 20+ | Frontend Dashboard & Chrome Extension |
+| Python | 3.12+ | FastAPI Backend |
+| `uv` | latest | Python package manager (replaces pip) |
+| Git | any | Version control |
 
 ---
 
-## Setting Up Locally
+## 🏗️ 2. Understanding the Project
 
-### Prerequisites
+ConsentFlow has **three main components**. Before picking an issue, understand which component it belongs to:
 
-| Tool | Minimum version |
-|------|----------------|
-| Docker + Docker Compose | v2 |
-| Node.js | 20+ |
-| Python | 3.12+ |
-| `uv` (Python package manager) | latest |
+| Component | Location | Tech Stack |
+|-----------|----------|-----------|
+| **Backend** | `consentflow-backend/` | Python 3.12, FastAPI, Kafka, Redis, PostgreSQL |
+| **Frontend** | `consentflow-frontend/` | Next.js 16 (App Router), TypeScript |
+| **Extension** | `consentflow-extension/` | Manifest V3, Vanilla JS, Vitest |
 
-### 1 — Fork and clone
+---
 
-1. Click **Fork** on the top right of the [ConsentFlow repo](https://github.com/Rishu7011/ConsentFlow)
-2. Clone your fork locally:
+## 🌱 3. Claiming an Issue
+
+1. Browse the [Issues tab](../../issues) and look for `good first issue` or `help wanted` labels.
+2. Read the issue **fully** before claiming — check if it is already assigned.
+3. Comment one of the following on the issue to claim it:
+   - `.take`
+   - `/assign`
+   - `assign me`
+4. Our **Auto-Assign Bot** will automatically assign the issue to you within seconds!
+
+> [!NOTE]
+> Do NOT open a PR without a linked issue. Every PR must reference an issue number.
+
+---
+
+## ⚠️ 4. Assignment Rules (Important!)
+
+To ensure fairness during GSSoC and give everyone a chance to contribute:
+
+- **You can hold a maximum of 3 open issues at a time.**
+- If you already have 3 open issues assigned, our **Assignment Limit Enforcer Bot** will automatically unassign you from any new issue you try to claim and notify you.
+- Once you close/merge one of your open issues, you are free to claim another.
+- Maintainers and admins are exempt from this rule.
+
+---
+
+## 💻 5. Local Setup
+
+### Step 1: Fork & Clone
 
 ```bash
+# Fork the repo on GitHub, then clone your fork:
 git clone https://github.com/<your-username>/ConsentFlow.git
 cd ConsentFlow
 ```
 
-3. Add the upstream remote so you can stay in sync:
-
-```bash
-git remote add upstream https://github.com/Rishu7011/ConsentFlow.git
-```
-
-### 2 — Backend
-
-> Before starting, make sure Docker Desktop is running.
+### Step 2: Set up the Backend
 
 ```bash
 cd consentflow-backend
 
-# Copy env file and set at least one AI key
-cp .env.example .env      # Linux/Mac
-copy .env.example .env    # Windows
+# Copy the environment file
+cp .env.example .env       # Linux / Mac
+copy .env.example .env     # Windows
 
-# Start full infrastructure stack (Postgres, Redis, Kafka, API, Grafana)
+# Edit .env — at minimum set GEMINI_API_KEY or MISTRAL_API_KEY
+# Then start the full Docker stack:
 docker compose up --build
 ```
 
-> **Apple Silicon:** Add `platform: linux/amd64` to the `zookeeper` and `kafka` services in `docker-compose.yml`.
+This starts PostgreSQL 16, Redis 7, Zookeeper, Kafka, and the ConsentFlow API.
+All 6 database migrations are applied automatically at startup.
 
-For local backend dev without Docker:
-
-```bash
-cd consentflow-backend
-uv sync
-uv run python -m spacy download en_core_web_lg
-uv run uvicorn consentflow.app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 3 — Frontend
+### Step 3: Set up the Frontend
 
 ```bash
 cd consentflow-frontend
 npm install
-npm run dev        # → http://localhost:3000 (or :3001 if 3000 is taken)
+npm run dev
+# Open http://localhost:3000
 ```
 
-### 4 — Chrome Extension
+### Step 4: Set up the Chrome Extension
 
 ```bash
 cd consentflow-extension
@@ -113,200 +115,120 @@ npm install
 npm run build
 ```
 
-Then in Chrome → `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → select `consentflow-extension/dist/`.
+Then in Chrome:
+1. Go to `chrome://extensions/`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked** → select the `consentflow-extension/dist` folder
+
+### Step 5: Run Tests
+
+```bash
+# Backend tests
+cd consentflow-backend
+uv run pytest --tb=short -q
+
+# Extension tests
+cd consentflow-extension
+npm test
+```
 
 ---
 
-## Branch Naming
+## 🌿 6. Branching Strategy
 
-Use the following prefixes — keep names short and lowercase:
-
-| Prefix | When to use | Example |
-|--------|-------------|---------|
-| `feat/` | New feature or enhancement | `feat/consent-history-timeline` |
-| `fix/` | Bug fix | `fix/redis-ttl-stale-grant` |
-| `docs/` | Documentation only | `docs/add-contributing-guide` |
-| `chore/` | Build, CI, tooling, deps | `chore/add-github-actions-ci` |
-| `test/` | Adding or fixing tests only | `test/inference-gate-unit` |
-| `refactor/` | Code restructure, no behavior change | `refactor/memory-store-dedup` |
-
-Always branch off `main`:
+Always create a new branch from `main` for your work. **Never commit directly to `main`.**
 
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/your-feature-name
+git checkout -b type/short-description
 ```
+
+**Branch naming format:** `type/short-description`
+
+| Type | Example |
+|------|---------|
+| `feat` | `feat/add-redis-cache` |
+| `bug` | `bug/fix-inference-gate` |
+| `docs` | `docs/update-contributing` |
+| `refactor` | `refactor/clean-kafka-consumer` |
+| `ci` | `ci/add-codeql-scan` |
 
 ---
 
-## Commit Messages
+## ✍️ 7. Commit Message Format
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <short summary>
-
-[optional body]
-
-[optional footer — e.g. Closes #42]
-```
-
-**Types:** `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `perf`
-
-**Scopes:** `backend`, `frontend`, `extension`, `ci`, `db`, `deps`
-
-Examples:
+All commit messages must follow the **Conventional Commits** format:
 
 ```
-feat(backend): add pagination to GET /consent endpoint
-
-fix(frontend): correct frozen state source of truth after page refresh
-
-docs(backend): document CORS allowed_origins env variable
-
-Closes #17
+type(scope): short description
 ```
 
-Keep the summary line under 72 characters. Use the body for *why*, not *what*.
-
----
-
-## Code Style
-
-### Python (Backend)
-
-- Formatter: **`ruff format`** (configured in `pyproject.toml`)
-- Linter: **`ruff check`**
-- Type hints required on all public functions
-- Async functions (`async def`) for all route handlers and DB calls
-- No bare `except:` — always catch specific exceptions
-
-Run before committing:
+**Examples:**
 
 ```bash
-cd consentflow-backend
-uv run ruff format .
-uv run ruff check .
+feat(backend): add Redis bloom filter for Gate 03
+bug(extension): fix PII token reversal for Aadhaar
+docs(readme): update quick start instructions
+ci(workflows): add CodeQL security scan
+refactor(frontend): simplify pipeline gate animation
 ```
 
-### TypeScript (Frontend & Extension)
-
-- Linter: **ESLint** — frontend uses `eslint-config-next`; run with `npm run lint`
-- No Prettier config exists yet — formatting is not enforced automatically
-- All new components must be typed — no `any`
-- Use `"use client"` only where strictly necessary (Next.js App Router)
-
-Run before committing:
-
-```bash
-# Frontend
-cd consentflow-frontend
-npm run lint
-
-# Extension — no lint script configured yet; type-check manually if needed
-cd consentflow-extension
-npx tsc --noEmit
-```
+**Valid types:** `feat`, `bug`, `docs`, `refactor`, `test`, `ci`, `perf`, `chore`  
+**Valid scopes:** `backend`, `frontend`, `extension`, `ci`, `docker`, `readme`
 
 ---
 
-## Running Tests
+## 🚀 8. Opening a Pull Request
 
-### Backend
+1. Push your branch to your fork:
+   ```bash
+   git push origin type/short-description
+   ```
+2. Go to GitHub → Open a **Pull Request** against the `main` branch of `ConsentFlow`.
+3. Fill in the **Pull Request Template** completely — do not delete any sections.
+4. Link your issue using `Closes #<issue-number>` in the PR description.
+5. Add appropriate **difficulty labels** (`level:beginner`, `level:intermediate`, `level:advanced`) — this is required for GSSoC scoring.
 
-```bash
-cd consentflow-backend
-
-# Full test suite
-uv run pytest
-
-# With coverage report
-uv run pytest --cov=consentflow --cov-report=term-missing
-
-# Specific test files
-uv run pytest tests/test_consent.py          # Consent CRUD + revoke endpoints
-uv run pytest tests/test_step3.py            # Gate 01: dataset gate (Presidio)
-uv run pytest tests/test_step4.py            # Gate 03: inference enforcement (ASGI middleware)
-uv run pytest tests/test_step5.py            # Gate 02: training gate (Kafka consumer)
-uv run pytest tests/test_step7.py            # Gate 04: drift monitor
-uv run pytest tests/test_monitoring_gate.py  # Monitoring gate unit tests
-uv run pytest tests/test_policy_auditor.py   # Gate 05: LLM policy scanner
-uv run pytest tests/test_gate05_e2e.py       # Gate 05: end-to-end policy scan
-```
-
-All tests must pass before opening a PR. New features should include corresponding tests.
-
-### Extension
-
-```bash
-cd consentflow-extension
-npm test     # runs vitest
-```
+Once your PR is opened, our bots will automatically:
+- ✅ Run the CI pipeline for your specific component
+- ✅ Run a CodeQL security scan
+- ✅ Apply labels based on your PR title and changed files
+- ✅ Calculate your GSSoC score
+- ✅ Flag your PR if it is too small or missing labels
 
 ---
 
-## Submitting a Pull Request
+## 🏆 9. GSSoC Scoring
 
-1. **Check for an existing issue** — if none exists, open one using the appropriate template:
-   - [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)
-   - [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
+PRs are automatically scored by our **GSSoC Score Calculator Bot**:
 
-   Wait for a maintainer to assign it to you before starting work.
+| Label | Points |
+|-------|--------|
+| `gssoc:approved` | 50 base points |
+| `level:beginner` | +10 points |
+| `level:intermediate` | +25 points |
+| `level:advanced` | +55 points |
+| `level:critical` | +100 points |
+| `quality:clean` | 1.2x multiplier |
+| `quality:exceptional` | 1.5x multiplier |
 
-2. **Create your branch** from `main` on your fork (see [Branch Naming](#branch-naming)).
-
-3. **Make your changes** — keep commits focused and atomic.
-
-4. **Ensure all tests pass** (see [Running Tests](#running-tests)).
-
-5. **Lint your code** (see [Code Style](#code-style)).
-
-6. **Open a PR** against `main` and fill in the [PR template](.github/PULL_REQUEST_TEMPLATE.md) completely.
-
-7. **Link the issue** — include `Closes #<issue-number>` in the PR description.
-
-8. **One PR per issue** — don't bundle unrelated changes.
-
-### PR Checklist
-
-Before marking your PR as ready for review, confirm all of the following:
-
-- [ ] My branch is up to date with `main`
-- [ ] All existing tests pass (`uv run pytest` / `npm test`)
-- [ ] I've added tests for new functionality
-- [ ] I've run the linter with no new errors
-- [ ] My commit messages follow Conventional Commits
-- [ ] I've updated relevant docs (`README.md`, `backend.md`, `frontend.md`) if needed
-- [ ] I've linked the issue this PR closes
+> [!IMPORTANT]
+> You **must** have both `gssoc:approved` AND a `level:*` label on your PR for it to be counted on the leaderboard. Missing labels will trigger an automated warning comment.
 
 ---
 
-## Issue Labels
+## 🙋 10. Getting Help
 
-| Label | Meaning |
-|-------|---------|
-| `good first issue` | Beginner-friendly, well-scoped |
-| `bug` | Something is broken |
-| `enhancement` | New feature or improvement |
-| `documentation` | Docs-only change |
-| `security` | Security-related concern |
-| `backend` | Affects `consentflow-backend/` |
-| `frontend` | Affects `consentflow-frontend/` |
-| `extension` | Affects `consentflow-extension/` |
-| `needs-triage` | Waiting for maintainer review |
-| `wontfix` | Acknowledged but out of scope |
+- **Stuck on setup?** Open a [Discussion](../../discussions) or comment on your issue.
+- **Found a bug in the codebase?** Open a [Bug Report](../../issues/new?template=bug_report.md).
+- **Have a feature idea?** Open a [Feature Request](../../issues/new?template=feature_request.md).
 
 ---
 
-## Getting Help
+<div align="center">
 
-- **GSSoC Discord / Slack** — tag `@Rishu7011` in the project channel
-- **GitHub Discussions** — open a discussion for questions that aren't bugs
-- **GitHub Issues** — use the issue templates for bugs and feature requests
+**When a user says stop — everything stops.**  
+*Build responsibly. Welcome to the team!* 🛡️
 
-If you're stuck on setup, open a `question` issue — no question is too small.
-
----
-
-_Built with 🛡️ by contributors who believe consent revocation should mean something._
+</div>
