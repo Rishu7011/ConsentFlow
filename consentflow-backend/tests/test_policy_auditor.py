@@ -70,6 +70,8 @@ def _make_auditor(fake_pool, fake_redis) -> PolicyAuditor:
 
 
 class _FakePrompt:
+    """Mock prompt object that returns a preconfigured chain via the pipe operator."""
+
     def __init__(self, chain):
         self._chain = chain
 
@@ -78,12 +80,16 @@ class _FakePrompt:
 
 
 class _FakeModel:
+    """Mock model object that supports LangChain's `with_fallbacks` contract."""
+
     def with_fallbacks(self, _fallbacks):
         return self
 
 
 @contextmanager
 def _mock_llm_chain(*, payload: dict | None = None, raw_content: str | None = None, side_effect=None):
+    """Mock LangChain prompt/model wiring and return a controlled async chain response."""
+
     content = raw_content if raw_content is not None else json.dumps(payload or {})
     fake_response = MagicMock()
     fake_response.content = content
