@@ -1,0 +1,62 @@
+name: "GSSoC Auto-Assign Bot"
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  auto-assign:
+    name: Auto-Assign Issue
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Check for Assignment Commands
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment.body.toLowerCase().trim();
+            const validCommands = ['.take', '/assign', 'assign me'];
+            
+            // Check if comment matches any assignment command
+            const isClaimCommand = validCommands.some(cmd => comment === cmd || comment.startsWith(`${cmd} `));
+            
+            if (isClaimCommand) {
+              const issue = context.payload.issue;
+              
+              // Ensure the issue is not a pull request
+              if (issue.pull_request) {
+                return;
+              }
+              
+              const commenter = context.payload.comment.user.login;
+              
+              // Only assign if the issue doesn't already have an assignee
+              if (issue.assignees && issue.assignees.length > 0) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: `@${commenter} Sorry, this issue is already assigned to someone else. Please look for another open issue!`
+                });
+                return;
+              }
+              
+              // Assign the issue
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: [commenter]
+              });
+              
+              // Post success comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `🎉 Assigned to @${commenter}! Thanks for contributing to ConsentFlow. Please make sure to read the [New Contributor Guide](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md) before starting.`
+              });
+            }
