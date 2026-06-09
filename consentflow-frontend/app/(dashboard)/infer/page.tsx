@@ -18,6 +18,7 @@ export default function InferPage() {
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? sessionStorage.getItem("active_user_id") : null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored) setUserId(stored);
   }, []);
 
