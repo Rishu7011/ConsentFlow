@@ -133,10 +133,12 @@ def create_app() -> FastAPI:
     )
     _cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
 
+    # Security: allow_origin_regex has been removed — the wildcard r".*" was
+    # overriding the allow_origins whitelist and permitting credentialled requests
+    # from any domain. The CORS_ALLOWED_ORIGINS-driven allow_origins list is sufficient.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins,
-        allow_origin_regex=r".*",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -157,7 +159,7 @@ def create_app() -> FastAPI:
     app.include_router(dashboard_router.router)
     app.include_router(policy_router)          # prefix="/policy" (Gate 05)
     app.include_router(chat_router.router)     # prefix="/chat"  (Plan 1.5)
-    
+
     from consentflow.app.routers import extension
     app.include_router(extension.router)
 
@@ -172,7 +174,7 @@ def create_app() -> FastAPI:
     async def health(request: Request) -> HealthResponse:
         pg_status = await check_postgres(request.app.state.db_pool)
         redis_status = await check_redis(request.app.state.redis_client)
-        
+
         # Kafka: None means gracefully disabled (no broker configured),
         # which is acceptable on Render without a Kafka add-on.
         _missing = object()
