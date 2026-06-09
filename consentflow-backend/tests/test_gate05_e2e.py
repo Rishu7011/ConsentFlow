@@ -18,14 +18,14 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime, timezone
+from contextlib import contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
-from httpx import ASGITransport, AsyncClient, Request as HttpxRequest
+from httpx import ASGITransport, AsyncClient
 
 from consentflow.app.models import PolicyScanRequest, PolicyScanResult, PolicyFinding
-from consentflow.policy_auditor import PolicyAuditor, PolicyFetchError
+from consentflow.policy_auditor import PolicyAuditor, PolicyAnalysisError, PolicyFetchError
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -50,25 +50,33 @@ def _make_auditor(fake_pool, fake_redis) -> PolicyAuditor:
     return PolicyAuditor(db_pool=fake_pool, redis_client=fake_redis)
 
 
-def _mock_ollama_client(post_return=None, post_side_effect=None, get_return=None, get_side_effect=None):
-    """
-    Return a context-manager-compatible mock for httpx.AsyncClient.
+class _FakePrompt:
+    def __init__(self, chain):
+        self._chain = chain
 
-    Callers can set post_return / post_side_effect for LLM calls and
-    get_return / get_side_effect for policy URL fetches.
-    """
-    mock_ctx = AsyncMock()
-    mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-    mock_ctx.__aexit__ = AsyncMock(return_value=False)
-    if post_side_effect is not None:
-        mock_ctx.post = AsyncMock(side_effect=post_side_effect)
-    elif post_return is not None:
-        mock_ctx.post = AsyncMock(return_value=post_return)
-    if get_side_effect is not None:
-        mock_ctx.get = AsyncMock(side_effect=get_side_effect)
-    elif get_return is not None:
-        mock_ctx.get = AsyncMock(return_value=get_return)
-    return mock_ctx
+    def __or__(self, _other):
+        return self._chain
+
+
+class _FakeModel:
+    def with_fallbacks(self, _fallbacks):
+        return self
+
+
+@contextmanager
+def _mock_llm_chain(payload: dict):
+    fake_response = MagicMock()
+    fake_response.content = json.dumps(payload)
+    fake_chain = AsyncMock()
+    fake_chain.ainvoke = AsyncMock(return_value=fake_response)
+    with (
+        patch(
+            "langchain_core.prompts.ChatPromptTemplate.from_messages",
+            return_value=_FakePrompt(fake_chain),
+        ),
+        patch("langchain_ollama.ChatOllama", return_value=_FakeModel()),
+    ):
+        yield
 
 
 # Reusable finding shapes ──────────────────────────────────────────────────────
@@ -110,24 +118,6 @@ async def test_full_scan_flow_url_mode(fake_pool, fake_redis):
     """
     auditor = _make_auditor(fake_pool, fake_redis)
 
-    # ── Mock: HTTP fetch of policy URL ───────────────────────────────────────
-    fake_http_response = MagicMock()
-    fake_http_response.text = (
-        "<html><body>"
-        "<p>We may use your inputs to train our models without additional notice.</p>"
-        "<p>Data may be shared with affiliated partners for service improvement.</p>"
-        "</body></html>"
-    )
-    fake_http_response.headers = {"content-type": "text/html; charset=utf-8"}
-    fake_http_response.raise_for_status = MagicMock()
-
-    # ── Mock: Ollama LLM response ─────────────────────────────────────────────
-    ollama_resp = _make_ollama_response(
-        [FINDING_CRITICAL, FINDING_MEDIUM],
-        "Two findings detected: one critical training clause and one medium sharing clause.",
-        "critical",
-    )
-
     # Track asyncpg execute calls
     execute_calls: list[str] = []
 
@@ -155,29 +145,31 @@ async def test_full_scan_flow_url_mode(fake_pool, fake_redis):
             pass
 
     tracking_pool = TrackingPool()
+    auditor = _make_auditor(tracking_pool, fake_redis)
 
-    # We need two different clients: one for GET (policy URL), one for POST (Ollama).
-    # Because both use httpx.AsyncClient, we differentiate by call order.
-    call_count = 0
-
-    def client_factory(*args, **kwargs):
-        nonlocal call_count
-        call_count += 1
-        ctx = AsyncMock()
-        ctx.__aenter__ = AsyncMock(return_value=ctx)
-        ctx.__aexit__ = AsyncMock(return_value=False)
-        # First client instantiation: policy URL fetch (GET)
-        ctx.get = AsyncMock(return_value=fake_http_response)
-        # Second client instantiation: Ollama call (POST)
-        ctx.post = AsyncMock(return_value=ollama_resp)
-        return ctx
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient", side_effect=client_factory):
+    with (
+        patch.object(
+            auditor,
+            "fetch_policy_text",
+            new=AsyncMock(return_value="policy text from fetched url"),
+        ),
+        patch.object(
+            auditor,
+            "analyze_policy",
+            new=AsyncMock(
+                return_value=(
+                    [FINDING_CRITICAL, FINDING_MEDIUM],
+                    "Two findings detected: one critical training clause and one medium sharing clause.",
+                    "critical",
+                )
+            ),
+        ),
+    ):
         req = PolicyScanRequest(
             integration_name="Test Plugin",
             policy_url="https://example.com/privacy",
         )
-        result = await auditor.scan(req, tracking_pool, fake_redis)
+        result = await auditor.scan(req)
 
     assert result["overall_risk_level"] == "critical"
     assert len(result["findings"]) == 2
@@ -211,24 +203,21 @@ async def test_full_scan_flow_paste_mode(fake_pool, fake_redis):
     - result["policy_url"] is None
     """
     auditor = _make_auditor(fake_pool, fake_redis)
-
-    ollama_resp = _make_ollama_response(
-        [],
-        "No red flags detected. The policy appears GDPR- and CCPA-compliant.",
-        "low",
-    )
-
-    get_mock = AsyncMock()
-
-    def client_factory(*args, **kwargs):
-        ctx = AsyncMock()
-        ctx.__aenter__ = AsyncMock(return_value=ctx)
-        ctx.__aexit__ = AsyncMock(return_value=False)
-        ctx.get = get_mock
-        ctx.post = AsyncMock(return_value=ollama_resp)
-        return ctx
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient", side_effect=client_factory):
+    fetch_mock = AsyncMock()
+    with (
+        patch.object(auditor, "fetch_policy_text", new=fetch_mock),
+        patch.object(
+            auditor,
+            "analyze_policy",
+            new=AsyncMock(
+                return_value=(
+                    [],
+                    "No red flags detected. The policy appears GDPR- and CCPA-compliant.",
+                    "low",
+                )
+            ),
+        ),
+    ):
         req = PolicyScanRequest(
             integration_name="Clean Plugin",
             policy_text=(
@@ -237,9 +226,9 @@ async def test_full_scan_flow_paste_mode(fake_pool, fake_redis):
                 "We do not share data with third parties."
             ),
         )
-        result = await auditor.scan(req, fake_pool, fake_redis)
+        result = await auditor.scan(req)
 
-    get_mock.assert_not_called()
+    fetch_mock.assert_not_called()
 
     assert result["overall_risk_level"] == "low"
     assert result["findings"] == []
@@ -257,7 +246,6 @@ async def test_api_endpoint_post_scan(fake_pool, fake_redis):
     FastAPI endpoint smoke test: POST /policy/scan → 201.
 
     PolicyAuditor.scan is fully mocked so no real LLM, HTTP, or DB call is made.
-    The Ollama reachability check (/api/tags) is also mocked to succeed.
     """
     scan_id = uuid.uuid4()
     scanned_at = datetime.now(tz=timezone.utc)
@@ -287,25 +275,10 @@ async def test_api_endpoint_post_scan(fake_pool, fake_redis):
     app.state.db_pool = fake_pool
     app.state.redis_client = fake_redis
 
-    # Mock the reachability GET and the scan invocation
-    tags_resp = MagicMock()
-    tags_resp.status_code = 200
-
-    with (
-        patch(
-            "consentflow.app.routers.policy.PolicyAuditor.scan",
-            new=AsyncMock(return_value=mock_result),
-        ),
-        patch(
-            "consentflow.app.routers.policy.httpx.AsyncClient"
-        ) as MockRouterClient,
+    with patch(
+        "consentflow.app.routers.policy.PolicyAuditor.scan",
+        new=AsyncMock(return_value=mock_result),
     ):
-        mock_router_ctx = AsyncMock()
-        mock_router_ctx.__aenter__ = AsyncMock(return_value=mock_router_ctx)
-        mock_router_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_router_ctx.get = AsyncMock(return_value=tags_resp)
-        MockRouterClient.return_value = mock_router_ctx
-
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as ac:
@@ -507,32 +480,25 @@ async def test_api_endpoint_get_scan_by_id_not_found(fake_pool, fake_redis):
     assert response.status_code == 404, response.text
 
 
-# ── Test 7: POST /policy/scan → 503 when Ollama unreachable ──────────────────
+# ── Test 7: POST /policy/scan → 502 when LLM fallback chain fails ────────────
 
 
 @pytest.mark.asyncio
-async def test_scan_returns_503_when_ollama_unreachable(fake_pool, fake_redis):
+async def test_scan_returns_502_when_ollama_unreachable(fake_pool, fake_redis):
     """
-    When the GET /api/tags reachability check raises ConnectError → 503.
+    When PolicyAuditor.scan surfaces a fallback failure → 502.
     """
     from consentflow.app.main import app
 
     app.state.db_pool = fake_pool
     app.state.redis_client = fake_redis
 
-    fake_request_obj = httpx.Request("GET", "http://localhost:11434/api/tags")
-
     with patch(
-        "consentflow.app.routers.policy.httpx.AsyncClient"
-    ) as MockRouterClient:
-        mock_router_ctx = AsyncMock()
-        mock_router_ctx.__aenter__ = AsyncMock(return_value=mock_router_ctx)
-        mock_router_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_router_ctx.get = AsyncMock(
-            side_effect=httpx.ConnectError("Connection refused", request=fake_request_obj)
-        )
-        MockRouterClient.return_value = mock_router_ctx
-
+        "consentflow.app.routers.policy.PolicyAuditor.scan",
+        new=AsyncMock(
+            side_effect=PolicyAnalysisError("All LLM fallbacks failed: Connection refused")
+        ),
+    ):
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as ac:
@@ -544,8 +510,8 @@ async def test_scan_returns_503_when_ollama_unreachable(fake_pool, fake_redis):
                 },
             )
 
-    assert response.status_code == 503, response.text
-    assert "Ollama" in response.json()["detail"]
+    assert response.status_code == 502, response.text
+    assert "LLM analysis failed" in response.json()["detail"]
 
 
 # ── Test 8: POST /policy/scan → 422 when policy URL fetch fails ───────────────
@@ -561,24 +527,12 @@ async def test_scan_returns_422_when_policy_url_fetch_fails(fake_pool, fake_redi
     app.state.db_pool = fake_pool
     app.state.redis_client = fake_redis
 
-    tags_resp = MagicMock()
-    tags_resp.status_code = 200
-
     with (
-        patch(
-            "consentflow.app.routers.policy.httpx.AsyncClient"
-        ) as MockRouterClient,
         patch(
             "consentflow.app.routers.policy.PolicyAuditor.scan",
             new=AsyncMock(side_effect=PolicyFetchError("HTTP 404 fetching policy")),
         ),
     ):
-        mock_router_ctx = AsyncMock()
-        mock_router_ctx.__aenter__ = AsyncMock(return_value=mock_router_ctx)
-        mock_router_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_router_ctx.get = AsyncMock(return_value=tags_resp)
-        MockRouterClient.return_value = mock_router_ctx
-
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as ac:
@@ -607,24 +561,12 @@ async def test_scan_returns_502_when_llm_fails(fake_pool, fake_redis):
     app.state.db_pool = fake_pool
     app.state.redis_client = fake_redis
 
-    tags_resp = MagicMock()
-    tags_resp.status_code = 200
-
     with (
-        patch(
-            "consentflow.app.routers.policy.httpx.AsyncClient"
-        ) as MockRouterClient,
         patch(
             "consentflow.app.routers.policy.PolicyAuditor.scan",
             new=AsyncMock(side_effect=PolicyAnalysisError("LLM call failed")),
         ),
     ):
-        mock_router_ctx = AsyncMock()
-        mock_router_ctx.__aenter__ = AsyncMock(return_value=mock_router_ctx)
-        mock_router_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_router_ctx.get = AsyncMock(return_value=tags_resp)
-        MockRouterClient.return_value = mock_router_ctx
-
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as ac:
@@ -664,19 +606,13 @@ async def test_risk_level_propagation(fake_pool, fake_redis):
         },
     ]
 
-    # LLM mis-reports risk as "low" despite a critical finding
-    ollama_resp = _make_ollama_response(
-        mixed_findings, "Mixed findings.", "low"   # intentionally wrong
-    )
-
-    def client_factory(*args, **kwargs):
-        ctx = AsyncMock()
-        ctx.__aenter__ = AsyncMock(return_value=ctx)
-        ctx.__aexit__ = AsyncMock(return_value=False)
-        ctx.post = AsyncMock(return_value=ollama_resp)
-        return ctx
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient", side_effect=client_factory):
+    with _mock_llm_chain(
+        payload={
+            "findings": mixed_findings,
+            "overall_risk_level": "low",  # intentionally wrong
+            "raw_summary": "Mixed findings.",
+        }
+    ):
         findings, summary, risk_level = await auditor.analyze_policy(
             "We may train AI on your inputs.", "MixedPlugin"
         )

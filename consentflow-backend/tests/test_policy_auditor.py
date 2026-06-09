@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -30,6 +31,7 @@ import pytest
 
 from consentflow.policy_auditor import (
     PolicyAuditor,
+    PolicyAnalysisError,
     PolicyFetchError,
     analyze_policy,
     fetch_policy_text,
@@ -56,6 +58,9 @@ def fake_settings():
     s = MagicMock()
     s.ollama_base_url = "http://localhost:11434"
     s.ollama_model = "qwen3:8b"
+    s.mistral_api_key = ""
+    s.mistral_model = "mistral-small-latest"
+    s.gemini_api_key = ""
     return s
 
 
@@ -64,22 +69,39 @@ def _make_auditor(fake_pool, fake_redis) -> PolicyAuditor:
     return PolicyAuditor(db_pool=fake_pool, redis_client=fake_redis)
 
 
-def _make_ollama_response(payload: dict) -> MagicMock:
-    """
-    Build a MagicMock that mimics an httpx.Response from POST /v1/chat/completions.
+class _FakePrompt:
+    def __init__(self, chain):
+        self._chain = chain
 
-    .json() returns the OpenAI-compatible envelope wrapping the JSON payload.
-    .raise_for_status() is a no-op (200 OK).
-    """
-    envelope = {
-        "choices": [
-            {"message": {"content": json.dumps(payload)}}
-        ]
-    }
-    mock_resp = MagicMock()
-    mock_resp.json.return_value = envelope
-    mock_resp.raise_for_status = MagicMock()
-    return mock_resp
+    def __or__(self, _other):
+        return self._chain
+
+
+class _FakeModel:
+    def with_fallbacks(self, _fallbacks):
+        return self
+
+
+@contextmanager
+def _mock_llm_chain(*, payload: dict | None = None, raw_content: str | None = None, side_effect=None):
+    content = raw_content if raw_content is not None else json.dumps(payload or {})
+    fake_response = MagicMock()
+    fake_response.content = content
+
+    fake_chain = AsyncMock()
+    if side_effect is not None:
+        fake_chain.ainvoke = AsyncMock(side_effect=side_effect)
+    else:
+        fake_chain.ainvoke = AsyncMock(return_value=fake_response)
+
+    with (
+        patch(
+            "langchain_core.prompts.ChatPromptTemplate.from_messages",
+            return_value=_FakePrompt(fake_chain),
+        ),
+        patch("langchain_ollama.ChatOllama", return_value=_FakeModel()),
+    ):
+        yield
 
 
 # ── Test 1: happy path — 1 critical finding ───────────────────────────────────
@@ -103,15 +125,7 @@ async def test_analyze_policy_returns_findings(fake_settings):
         "raw_summary": "One critical training clause found.",
     }
 
-    mock_resp = _make_ollama_response(payload)
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient") as MockClient:
-        mock_ctx = AsyncMock()
-        mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-        mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.post = AsyncMock(return_value=mock_resp)
-        MockClient.return_value = mock_ctx
-
+    with _mock_llm_chain(payload=payload):
         findings, raw_summary, risk_level = await analyze_policy(
             "We may train on your inputs without notice.",
             "TestPlugin",
@@ -137,15 +151,7 @@ async def test_analyze_policy_empty_findings(fake_settings):
         "raw_summary": "No red flags detected.",
     }
 
-    mock_resp = _make_ollama_response(payload)
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient") as MockClient:
-        mock_ctx = AsyncMock()
-        mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-        mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.post = AsyncMock(return_value=mock_resp)
-        MockClient.return_value = mock_ctx
-
+    with _mock_llm_chain(payload=payload):
         findings, raw_summary, risk_level = await analyze_policy(
             "We collect only minimum data.", "CleanPlugin", fake_settings
         )
@@ -167,18 +173,7 @@ async def test_analyze_policy_strips_markdown_fences(fake_settings):
     }
     fenced_content = f"```json\n{json.dumps(inner_payload)}\n```"
 
-    envelope = {"choices": [{"message": {"content": fenced_content}}]}
-    mock_resp = MagicMock()
-    mock_resp.json.return_value = envelope
-    mock_resp.raise_for_status = MagicMock()
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient") as MockClient:
-        mock_ctx = AsyncMock()
-        mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-        mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.post = AsyncMock(return_value=mock_resp)
-        MockClient.return_value = mock_ctx
-
+    with _mock_llm_chain(raw_content=fenced_content):
         findings, raw_summary, risk_level = await analyze_policy(
             "Policy text.", "FencePlugin", fake_settings
         )
@@ -193,20 +188,7 @@ async def test_analyze_policy_strips_markdown_fences(fake_settings):
 @pytest.mark.asyncio
 async def test_analyze_policy_invalid_json_raises(fake_settings):
     """LLM returns plain text instead of JSON → ValueError must propagate."""
-    envelope = {
-        "choices": [{"message": {"content": "Sorry, I cannot help with that."}}]
-    }
-    mock_resp = MagicMock()
-    mock_resp.json.return_value = envelope
-    mock_resp.raise_for_status = MagicMock()
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient") as MockClient:
-        mock_ctx = AsyncMock()
-        mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-        mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.post = AsyncMock(return_value=mock_resp)
-        MockClient.return_value = mock_ctx
-
+    with _mock_llm_chain(raw_content="Sorry, I cannot help with that."):
         with pytest.raises(ValueError):
             await analyze_policy("Policy text.", "BadPlugin", fake_settings)
 
@@ -232,15 +214,7 @@ async def test_analyze_policy_unknown_severity_defaults_to_low(fake_settings):
         "raw_summary": "One finding of unknown severity.",
     }
 
-    mock_resp = _make_ollama_response(payload)
-
-    with patch("consentflow.policy_auditor.httpx.AsyncClient") as MockClient:
-        mock_ctx = AsyncMock()
-        mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-        mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.post = AsyncMock(return_value=mock_resp)
-        MockClient.return_value = mock_ctx
-
+    with _mock_llm_chain(payload=payload):
         findings, _, risk_level = await analyze_policy(
             "Policy text.", "WeirdPlugin", fake_settings
         )
@@ -295,20 +269,12 @@ async def test_fetch_policy_text_http_error(fake_settings):
             await fetch_policy_text("https://example.com/missing", fake_settings)
 
 
-# ── Test 8: Ollama timeout → TimeoutException propagates ──────────────────────
+# ── Test 8: Ollama timeout → PolicyAnalysisError ──────────────────────────────
 
 
 @pytest.mark.asyncio
 async def test_ollama_timeout_raises(fake_settings):
-    """httpx.TimeoutException raised by mock → must propagate out of analyze_policy."""
-    with patch("consentflow.policy_auditor.httpx.AsyncClient") as MockClient:
-        mock_ctx = AsyncMock()
-        mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
-        mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.post = AsyncMock(
-            side_effect=httpx.TimeoutException("Request timed out")
-        )
-        MockClient.return_value = mock_ctx
-
-        with pytest.raises(httpx.TimeoutException):
+    """Model invocation timeout is wrapped as PolicyAnalysisError."""
+    with _mock_llm_chain(side_effect=httpx.TimeoutException("Request timed out")):
+        with pytest.raises(PolicyAnalysisError):
             await analyze_policy("Policy text.", "SlowPlugin", fake_settings)

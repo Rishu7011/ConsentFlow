@@ -104,6 +104,7 @@ async def client(fake_pool: FakePool, fake_redis: FakeRedis) -> AsyncGenerator[A
     
     app.state.db_pool = fake_pool
     app.state.redis_client = fake_redis
+    app.state.kafka_producer = object()
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
