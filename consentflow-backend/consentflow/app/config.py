@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     kafka_broker_url: str = "localhost:29092"
     # Topic where consent-revocation events are published.
     kafka_topic_revoke: str = "consent.revoked"
-
+    kafka_topic_dlq: str = "consent.revoked.dlq"
     # ── Step 7: OpenTelemetry ──────────────────────────────────────────────────
     # Set otel_enabled=true in docker-compose env to activate OTLP export.
     # Defaults to False so existing tests never need a running OTel collector.

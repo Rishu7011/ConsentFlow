@@ -195,3 +195,37 @@ volumes:
 networks:
   consentflow-net:
     driver: bridge
+
+# ── Training Gate Consumer ──────────────────────────────────────────────────
+  training-gate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: consentflow-training-gate
+    restart: unless-stopped
+    command: ["python", "-m", "consentflow.training_gate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-consentflow}
+      POSTGRES_USER: ${POSTGRES_USER:-consentflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-consentflow}
+      KAFKA_BROKER_URL: kafka:9092
+      KAFKA_TOPIC_REVOKE: ${KAFKA_TOPIC_REVOKE:-consent.revoked}
+      KAFKA_TOPIC_DLQ: ${KAFKA_TOPIC_DLQ:-consent.revoked.dlq}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import asyncio; from consentflow.training_gate import health_check; asyncio.run(health_check())\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - consentflow-net

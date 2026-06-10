@@ -241,7 +241,8 @@ class TrainingGateConsumer:
 
     # ── Main consume loop ─────────────────────────────────────────────────────
 
-    async def run(self) -> None:  # pragma: no cover
+    async def run(self) -> None: 
+        global _consumer_healthy  # pragma: no cover
         """
         Continuously consume ``consent.revoked`` events until cancelled.
 
@@ -253,6 +254,7 @@ class TrainingGateConsumer:
             settings.kafka_topic_revoke,
             settings.kafka_broker_url,
         )
+         _consumer_healthy = True
 
         try:
             async for msg in self._consumer:
@@ -268,6 +270,7 @@ class TrainingGateConsumer:
                             msg.partition,
                             event,
                         )
+                        await _send_to_dlq(msg.value, reason="missing_user_id")
                         continue
 
                     await self._process_revocation(
@@ -285,7 +288,9 @@ class TrainingGateConsumer:
                         exc,
                         exc_info=True,
                     )
+                    await _send_to_dlq(getattr(msg, "value", {}), reason=str(exc))
         except asyncio.CancelledError:
+             _consumer_healthy = False
             logger.info("Training gate consumer: cancelled — shutting down")
             raise
 
@@ -318,6 +323,41 @@ async def run_training_gate_consumer() -> None:  # pragma: no cover
         await consumer.stop()
         logger.info("Training gate consumer: Kafka consumer stopped")
 
+# ── Dead-letter queue producer ─────────────────────────────────────────────────
+
+async def _send_to_dlq(raw_value: bytes | dict | str, reason: str) -> None:
+    """Send an unprocessable message to the dead-letter topic."""
+    try:
+        from aiokafka import AIOKafkaProducer
+        import json
+
+        dlq_topic = settings.kafka_topic_dlq  # add this to your settings/config
+        payload = json.dumps({
+            "original_message": raw_value if isinstance(raw_value, dict) else str(raw_value),
+            "reason": reason,
+            "failed_at": datetime.now(timezone.utc).isoformat(),
+        }).encode()
+
+        producer = AIOKafkaProducer(bootstrap_servers=settings.kafka_broker_url)
+        await producer.start()
+        try:
+            await producer.send_and_wait(dlq_topic, payload)
+            logger.warning("Training gate: message sent to DLQ — reason=%s", reason)
+        finally:
+            await producer.stop()
+    except Exception as exc:
+        logger.error("Training gate: failed to send to DLQ — %s", exc)
+
+
+# ── Health check ───────────────────────────────────────────────────────────────
+
+# Simple flag set to True once the consumer loop starts
+_consumer_healthy = False
+
+async def health_check() -> None:
+    """Raises SystemExit(1) if the consumer is not running — used by Docker healthcheck."""
+    if not _consumer_healthy:
+        raise SystemExit(1)
 
 if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
