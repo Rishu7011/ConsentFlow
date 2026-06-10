@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 from typing import Any
 
 import mlflow
@@ -57,6 +58,34 @@ def _utc_now_iso() -> str:
 def _make_client() -> MlflowClient:
     """Return a new ``MlflowClient`` bound to the active tracking URI."""
     return MlflowClient()
+
+
+# ── Input validation ──────────────────────────────────────────────────────────
+
+_UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
+
+
+def _validate_user_id(user_id: str) -> str:
+    """
+    Validate that *user_id* is a well-formed UUID string.
+
+    Raises
+    ------
+    ValueError
+        If *user_id* does not match the standard UUID format.  This prevents
+        filter-injection attacks where a crafted ``user_id`` from a Kafka event
+        could inject arbitrary MLflow filter-string logic (e.g. via the
+        ``tags.revoked_user = '{user_id}'`` search filter).
+    """
+    if not _UUID_RE.match(user_id):
+        raise ValueError(
+            f"Invalid user_id — expected UUID, got: {user_id!r}. "
+            "Aborting MLflow operation to prevent filter injection."
+        )
+    return user_id
 
 
 # ── Run-level helpers ─────────────────────────────────────────────────────────
@@ -109,6 +138,9 @@ def search_runs_by_user(
         return []
 
     matched: list[Run] = []
+
+    # Guard against filter-injection via crafted user_id values from Kafka events
+    _validate_user_id(user_id)
 
     for exp_id in experiment_ids:
         try:
@@ -180,6 +212,9 @@ def apply_quarantine_tags(
     ------
     MlflowException  If the MLflow tracking server is unreachable.
     """
+    # Guard against filter-injection via crafted user_id values from Kafka events
+    _validate_user_id(user_id)
+
     ts = timestamp or _utc_now_iso()
     client = _make_client()
 
