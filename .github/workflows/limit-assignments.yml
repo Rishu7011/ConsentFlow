@@ -20,8 +20,8 @@ jobs:
             const issue = context.payload.issue;
             const assignee = context.payload.assignee.login;
             
-            // Allow maintainers to have unlimited assignments
-            const maintainers = ['Niteshagarwal01']; // Assuming repo owner is default maintainer
+            // Allow maintainers / org owners to have unlimited assignments
+            const maintainers = []; // Add maintainer GitHub usernames here if needed
             if (maintainers.includes(assignee)) {
               console.log(`Assignee ${assignee} is a maintainer. Skipping limit check.`);
               return;
@@ -40,8 +40,9 @@ jobs:
             
             console.log(`User ${assignee} has ${assignedIssuesCount} open issues assigned.`);
             
-            // If the user has more than 3 issues assigned (including the one just assigned)
-            if (assignedIssuesCount > 3) {
+            // If the user has 3 or more issues assigned (including the one just assigned),
+            // unassign them immediately. The limit is strictly 3 open issues max.
+            if (assignedIssuesCount >= 3) {
               console.log(`Limit exceeded. Unassigning ${assignee}...`);
               
               // Unassign the user from this issue

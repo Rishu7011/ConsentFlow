@@ -165,12 +165,39 @@ async def register_dataset_with_consent_check(
             }
         )
 
-        # Log pipeline run_id as a tag
+        # Build the trained_users tag so the training gate can retroactively
+        # locate this run and quarantine it when a user revokes consent.
+        # Only include users whose records appear in the cleaned (consented) output.
+        consented_records = {
+            str(record.get("user_id", ""))
+            for record in cleaned
+            if str(record.get("user_id", ""))
+            # A record is consented (not anonymized) when its user_id survives intact
+            and any(
+                str(orig.get("user_id", "")) == str(record.get("user_id", ""))
+                for orig in dataset
+            )
+        }
+        # Exclude user IDs that were anonymized (their records lost the user_id field)
+        anonymized_uids = {
+            str(orig.get("user_id", ""))
+            for orig in dataset
+            if not await is_user_consented(
+                str(orig.get("user_id", "")),
+                purpose,
+                redis_client=redis_client,
+                db_pool=db_pool,
+            )
+            if str(orig.get("user_id", ""))
+        }
+        trained_users_tag = ",".join(sorted(consented_records - anonymized_uids))
+
         mlflow.set_tags(
             {
                 "pipeline_run_id": run_id,
                 "purpose": purpose,
                 "step": "dataset_gate",
+                "trained_users": trained_users_tag,
             }
         )
 
