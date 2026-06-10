@@ -36,8 +36,13 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Maximum characters sent to the LLM (context safety guard).
-_MAX_POLICY_CHARS: int = 12_000
+# Maximum characters per LLM chunk. Real-world ToS documents regularly
+# exceed 30k–50k chars. We split into overlapping chunks and merge results
+# rather than blindly truncating and producing false-negative audits.
+_CHUNK_SIZE: int = 10_000
+_CHUNK_OVERLAP: int = 500
+# Keep for backward-compat references elsewhere in the file.
+_MAX_POLICY_CHARS: int = _CHUNK_SIZE
 
 # Severity ordering for recomputing overall_risk_level.
 _SEVERITY_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3}
@@ -176,6 +181,26 @@ def _compute_max_severity(findings: list[dict]) -> str:
     return max_sev
 
 
+def _chunk_text(text: str) -> list[str]:
+    """
+    Split *text* into overlapping chunks of at most ``_CHUNK_SIZE`` characters.
+
+    An overlap of ``_CHUNK_OVERLAP`` characters is kept between adjacent chunks
+    so that clauses straddling a chunk boundary are not silently dropped.
+    This replaces the previous hard-truncation at ``_MAX_POLICY_CHARS`` which
+    caused false-negative compliance results on long ToS documents.
+    """
+    if len(text) <= _CHUNK_SIZE:
+        return [text]
+    chunks: list[str] = []
+    start = 0
+    while start < len(text):
+        end = start + _CHUNK_SIZE
+        chunks.append(text[start:end])
+        start += _CHUNK_SIZE - _CHUNK_OVERLAP
+    return chunks
+
+
 # ── Functional helpers (thin wrappers; used by the class and the tests) ────────
 
 
@@ -219,14 +244,8 @@ async def fetch_policy_text(url: str, settings) -> str:
 
     plain = " ".join(plain.split())
 
-    if len(plain) > _MAX_POLICY_CHARS:
-        logger.debug(
-            "PolicyAuditor: truncating policy text from %d to %d chars",
-            len(plain),
-            _MAX_POLICY_CHARS,
-        )
-        plain = plain[:_MAX_POLICY_CHARS] + " [... document truncated for analysis ...]"
-
+    # Do NOT truncate — long documents are chunked in analyze_policy() so
+    # every clause is scanned regardless of document length.
     if not plain.strip():
         raise httpx.RequestError(
             f"Fetched document from {url} yielded no extractable text."
@@ -245,7 +264,7 @@ async def analyze_policy(
 
     Parameters
     ----------
-    policy_text:       Raw policy text (will be truncated to _MAX_POLICY_CHARS).
+    policy_text:       Raw policy text (chunked automatically for long documents).
     integration_name:  Human-readable name of the third-party integration.
     settings:          App Settings instance (provides ollama_base_url / ollama_model).
 
@@ -259,82 +278,104 @@ async def analyze_policy(
     httpx.HTTPError  — Ollama unreachable or returned a non-2xx status.
     ValueError       — LLM response could not be parsed as JSON.
     """
-    # Truncate before sending
-    text = policy_text
-    if len(text) > _MAX_POLICY_CHARS:
-        text = text[:_MAX_POLICY_CHARS] + " [... document truncated for analysis ...]"
-
-    user_message = f"Integration name: {integration_name}\n\nPolicy text:\n{text}"
+    # ── Chunk-map-reduce for long documents ────────────────────────────────────
+    # Previously the text was hard-truncated at _MAX_POLICY_CHARS (12k chars)
+    # causing false-negative results on real-world ToS documents that regularly
+    # exceed 30k–50k characters.  Now we split into overlapping chunks, run the
+    # LLM on each, merge all findings, deduplicate by clause_excerpt, and
+    # recompute overall_risk_level from the full merged set.
+    chunks = _chunk_text(policy_text)
+    all_findings: list[dict] = []
+    last_summary = ""
 
     logger.info(
-        "PolicyAuditor: calling Ollama OpenAI endpoint integration=%r text_len=%d",
+        "PolicyAuditor: analysing integration=%r total_chars=%d chunks=%d",
         integration_name,
-        len(text),
+        len(policy_text),
+        len(chunks),
     )
 
-    ollama_url = settings.ollama_base_url.rstrip("/") + "/v1/chat/completions"
-    payload = {
-        "model": settings.ollama_model,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_message},
-        ],
-        "temperature": 0.1,
-        "response_format": {"type": "json_object"},
-    }
+    for chunk_idx, chunk in enumerate(chunks, start=1):
+        text = chunk
+        user_message = f"Integration name: {integration_name}\n\nPolicy text:\n{text}"
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(ollama_url, json=payload)
-        response.raise_for_status()
+        logger.info(
+            "PolicyAuditor: calling Ollama chunk %d/%d integration=%r text_len=%d",
+            chunk_idx,
+            len(chunks),
+            integration_name,
+            len(text),
+        )
 
-    envelope = response.json()
-    try:
-        raw_content = envelope["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise ValueError(
-            "Ollama response did not include choices[0].message.content."
-        ) from exc
+        ollama_url = settings.ollama_base_url.rstrip("/") + "/v1/chat/completions"
+        payload = {
+            "model": settings.ollama_model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"},
+        }
 
-    logger.debug(
-        "PolicyAuditor: raw LLM response (first 500 chars): %s",
-        raw_content[:500],
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(ollama_url, json=payload)
+            response.raise_for_status()
+
+        envelope = response.json()
+        try:
+            raw_content = envelope["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ValueError(
+                "Ollama response did not include choices[0].message.content."
+            ) from exc
+
+        logger.debug(
+            "PolicyAuditor: raw LLM response chunk %d (first 500 chars): %s",
+            chunk_idx,
+            raw_content[:500],
+        )
+
+        cleaned = _strip_markdown_fences(raw_content)
+
+        try:
+            parsed: dict = json.loads(cleaned)
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise ValueError(
+                f"Ollama returned non-JSON content for integration={integration_name!r}: {exc}"
+            ) from exc
+
+        chunk_findings: list = parsed.get("findings", [])
+        last_summary = parsed.get("raw_summary", parsed.get("summary", ""))
+
+        for finding in chunk_findings:
+            finding["severity"] = _validate_severity(
+                finding.get("severity", "low"),
+                context=f"chunk={chunk_idx} finding id={finding.get('id', '?')}",
+            )
+
+        all_findings.extend(chunk_findings)
+
+    # ── Merge & deduplicate across all chunks ─────────────────────────────────
+    seen_excerpts: set[str] = set()
+    merged_findings: list[dict] = []
+    for f in all_findings:
+        key = f.get("clause_excerpt", "")[:100]
+        if key not in seen_excerpts:
+            seen_excerpts.add(key)
+            merged_findings.append(f)
+
+    # Recompute overall_risk_level from ALL merged findings
+    risk_level = _compute_max_severity(merged_findings) if merged_findings else "low"
+
+    logger.info(
+        "PolicyAuditor: merged %d findings from %d chunks — overall_risk_level=%s",
+        len(merged_findings),
+        len(chunks),
+        risk_level,
     )
 
-    # Strip any accidental markdown fences
-    cleaned = _strip_markdown_fences(raw_content)
-
-    try:
-        parsed: dict = json.loads(cleaned)
-    except (json.JSONDecodeError, ValueError) as exc:
-        raise ValueError(
-            f"Ollama returned non-JSON content for integration={integration_name!r}: {exc}"
-        ) from exc
-
-    findings: list = parsed.get("findings", [])
-    raw_summary: str = parsed.get("raw_summary", parsed.get("summary", ""))
-    risk_level: str = parsed.get("overall_risk_level", "low")
-
-    # Validate and normalise finding severities
-    for finding in findings:
-        finding["severity"] = _validate_severity(
-            finding.get("severity", "low"),
-            context=f"finding id={finding.get('id', '?')}",
-        )
-
-    # Validate LLM-reported overall_risk_level
-    risk_level = _validate_severity(risk_level, context="overall_risk_level")
-
-    # Safety net: recompute from findings and override if LLM under-reported
-    computed_max = _compute_max_severity(findings)
-    if _SEVERITY_ORDER[computed_max] > _SEVERITY_ORDER[risk_level]:
-        logger.warning(
-            "PolicyAuditor: LLM reported overall_risk_level=%r but computed max is %r; overriding.",
-            risk_level,
-            computed_max,
-        )
-        risk_level = computed_max
-
-    return findings, raw_summary, risk_level
+    return merged_findings, last_summary, risk_level
 
 
 # ── Main auditor class ─────────────────────────────────────────────────────────
