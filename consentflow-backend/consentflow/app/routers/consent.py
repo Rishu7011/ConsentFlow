@@ -123,7 +123,7 @@ async def upsert_consent(
             if body.status.value == "granted":
                 await conn.execute(
                     "DELETE FROM consent_freeze_log WHERE user_id = $1 AND purpose = $2",
-                    str(body.user_id)
+                    str(body.user_id),
                     body.purpose,
                 )
     except asyncpg.ForeignKeyViolationError:
