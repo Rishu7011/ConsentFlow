@@ -91,21 +91,47 @@ class GeminiClient:
         # 5. Build LangChain RAG pipeline
         try:
             if memories and mistral_api_key:
-                # Use Mistral Embeddings and InMemoryVectorStore for proper RAG
-                embeddings = MistralAIEmbeddings(mistral_api_key=mistral_api_key)
-                vector_store = await InMemoryVectorStore.afrom_texts(memories, embedding=embeddings)
-                retriever = vector_store.as_retriever(search_kwargs={"k": 3})
-                
+                # ── Vector store with per-user caching ────────────────────────
+                # Previously InMemoryVectorStore.afrom_texts() was called on
+                # every request, re-embedding ALL memories via Mistral API each
+                # time (O(N) API calls per message). This causes rate-limit
+                # errors and makes the feature unusable for long-term users.
+                #
+                # Fix: cache the vector store keyed by a fingerprint of the
+                # memories list. The store is only rebuilt when memories change.
+                memories_fingerprint = hash(tuple(memories))
+                cache_key = (user_id, memories_fingerprint) if hasattr(self, "_vs_cache") else None
+
+                if not hasattr(self, "_vs_cache"):
+                    from cachetools import LRUCache
+                    self._vs_cache: LRUCache = LRUCache(maxsize=128)
+
+                cached_store = self._vs_cache.get((user_id, memories_fingerprint))
+                if cached_store is None:
+                    logger.debug(
+                        "gemini_client: building vector store for user_id=%s memories=%d",
+                        user_id, len(memories),
+                    )
+                    embeddings = MistralAIEmbeddings(mistral_api_key=mistral_api_key)
+                    cached_store = await InMemoryVectorStore.afrom_texts(memories, embedding=embeddings)
+                    self._vs_cache[(user_id, memories_fingerprint)] = cached_store
+                else:
+                    logger.debug(
+                        "gemini_client: reusing cached vector store for user_id=%s", user_id
+                    )
+
+                retriever = cached_store.as_retriever(search_kwargs={"k": 3})
+
                 def format_docs(docs) -> str:
                     return "\n".join(f"- {doc.page_content}" for doc in docs)
-                
+
                 chain = (
                     {"memory_lines": retriever | format_docs, "user_message": RunnablePassthrough()}
                     | prompt_template
                     | model_chain
                     | StrOutputParser()
                 )
-                
+
                 response = await chain.ainvoke(user_message)
                 return response
             else:
