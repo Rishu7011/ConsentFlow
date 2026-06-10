@@ -133,13 +133,12 @@ class ConsentCallbackHandler(BaseCallbackHandler):
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                # Inside a running loop (e.g. Jupyter / FastAPI) — schedule
-                # as a task and wait; this is safe in most LCEL scenarios.
-                import concurrent.futures
-
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-                    future = pool.submit(asyncio.run, self._check())
-                    future.result()
+                # Submit the coroutine to the EXISTING running loop instead of
+                # creating a new one via asyncio.run().  The db_pool and
+                # redis_client are bound to this loop — running them on a
+                # different loop raises "Future attached to a different loop".
+                future = asyncio.run_coroutine_threadsafe(self._check(), loop)
+                future.result(timeout=10)
             else:
                 loop.run_until_complete(self._check())
         except ConsentRevokedException:
