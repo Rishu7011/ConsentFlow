@@ -34,6 +34,7 @@ export default function DemoPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [revoking, setRevoking] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [gateStates, setGateStates] = useState(DEFAULT_GATES);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [typing, setTyping] = useState(false);
@@ -224,6 +225,7 @@ export default function DemoPage() {
 
   const handleRestore = useCallback(async () => {
     if (!demoUuid) return;
+    setRestoring(true);
     try {
       // Just grant consent so the backend allows memory updates again.
       // The backend will automatically clear the freeze log.
@@ -237,6 +239,8 @@ export default function DemoPage() {
       toast.success("Consent restored", { description: "Memory un-frozen. You can continue chatting!" });
     } catch {
       toast.error("Restore failed");
+      } finally {
+       setRestoring(false);
     }
   }, [demoUuid]);
 
@@ -315,7 +319,8 @@ export default function DemoPage() {
               key="restore"
               id="restore-btn"
               onClick={handleRestore}
-              className="glow-teal font-bold text-base px-12 py-3.5 rounded-2xl transition-all flex items-center gap-3"
+              disabled={restoring}
+              className="glow-teal font-bold text-base px-12 py-3.5 rounded-2xl transition-all flex items-center gap-3 disabled:opacity-50"
               style={{ background: "var(--cf-teal)", color: "var(--cf-bg)", minWidth: "400px", justifyContent: "center" }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -323,6 +328,7 @@ export default function DemoPage() {
               whileTap={{ scale: 0.98 }}
             >
               ✅ RESTORE CONSENT
+              {restoring ? <><span className="animate-spin">⚙️</span> Restoring…</> : <>✅ RESTORE CONSENT</>}
             </motion.button>
           )}
         </AnimatePresence>
