@@ -111,11 +111,7 @@ cd ConsentFlow
 # Start backend
 cd consentflow-backend
 npm install
-npm run dev
-
-# Start web dashboard (new terminal)
-cd ../consentflow-frontend
-npm install
+cp .env.example .env   # add your MongoDB URI and Gemini API key
 npm run dev
 ```
 
