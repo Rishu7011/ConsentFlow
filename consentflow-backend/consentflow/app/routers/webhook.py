@@ -237,13 +237,14 @@ async def receive_consent_revoke(
         memory_count = await memory_store.get_memory_count(pool, str(user_uuid))
         await pool.execute(
             """
-            INSERT INTO consent_freeze_log (user_id, frozen_at_count)
-            VALUES ($1, $2)
-            ON CONFLICT (user_id) DO UPDATE
-            SET frozen_at_count = $2,
+            INSERT INTO consent_freeze_log (user_id, purpose, frozen_at_count)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id, purpose) DO UPDATE
+            SET frozen_at_count = $3,
                 frozen_at       = NOW()
             """,
             user_uuid,
+            body.purpose,
             memory_count,
         )
         logger.info(
